@@ -1,0 +1,9 @@
+Contains any reusable components for multiple pages.
+
+************************************************************************
+List of components and how they can be used, as well as props required. 
+Component : function
+    required props:
+        - 
+************************************************************************
+

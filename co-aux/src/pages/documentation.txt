@@ -1,0 +1,7 @@
+Contains the pages of the application.
+
+************************************************************************
+List of page of the application and their functions
+Page : function
+************************************************************************
+

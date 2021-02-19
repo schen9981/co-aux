@@ -1,0 +1,3 @@
+Contains any images and fonts used throughout the application. 
+
+
