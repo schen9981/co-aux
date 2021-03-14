@@ -1,5 +1,11 @@
 import React from 'react';
 import './App.css';
+import { createBrowserHistory } from "history";
+import { Router, Switch, Route } from "react-router-dom";
+import HomePage from './pages/HomePage/HomePage';
+import RedirectPage from './pages/RedirectPage/RedirectPage';
+
+const history = createBrowserHistory();
 
 type AppProps = {
 };
@@ -14,7 +20,21 @@ export default class App extends React.Component<AppProps, AppState> {
 
   render() {
       return (
-        <p> hello world </p>
+        <Router history={history}>
+          <Switch>
+            <Route path="/">
+              <div className="App">
+                <HomePage />
+              </div>
+            </Route>
+            
+            <Route path="/redirect">
+              <div className="App">
+                <RedirectPage />
+              </div>
+            </Route>
+          </Switch>
+        </Router>
       );
   }
 }
