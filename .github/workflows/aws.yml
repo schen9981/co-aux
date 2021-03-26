@@ -77,5 +77,4 @@ jobs:
         task-definition: ${{ steps.task-def.outputs.task-definition }}
         service: coaux-service
         cluster: coaux-cluster
-      working-directory: server
         wait-for-service-stability: true
