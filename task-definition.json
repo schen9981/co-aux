@@ -52,51 +52,13 @@
     "placementConstraints": [],
     "memory": null,
     "taskRoleArn": null,
-    "compatibilities": [
-        "EC2"
-    ],
-    "taskDefinitionArn": "arn:aws:ecs:us-east-1:407151010400:task-definition/coaux-server:2",
     "family": "coaux-server",
-    "requiresAttributes": [
-        {
-            "targetId": null,
-            "targetType": null,
-            "value": null,
-            "name": "com.amazonaws.ecs.capability.ecr-auth"
-        },
-        {
-            "targetId": null,
-            "targetType": null,
-            "value": null,
-            "name": "com.amazonaws.ecs.capability.docker-remote-api.1.21"
-        },
-        {
-            "targetId": null,
-            "targetType": null,
-            "value": null,
-            "name": "ecs.capability.execution-role-ecr-pull"
-        },
-        {
-            "targetId": null,
-            "targetType": null,
-            "value": null,
-            "name": "com.amazonaws.ecs.capability.docker-remote-api.1.18"
-        },
-        {
-            "targetId": null,
-            "targetType": null,
-            "value": null,
-            "name": "ecs.capability.task-eni"
-        }
-    ],
     "pidMode": null,
     "requiresCompatibilities": [
         "EC2"
     ],
     "networkMode": "awsvpc",
     "cpu": null,
-    "revision": 2,
-    "status": "ACTIVE",
     "inferenceAccelerators": null,
     "proxyConfiguration": null,
     "volumes": []
