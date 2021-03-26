@@ -3,9 +3,7 @@ import express from 'express';
 import cookieParser from 'cookie-parser';
 import logger from 'morgan';
 
-import indexRouter from './routes/index.js';
 import loginRouter from './routes/login.js';
-import usersRouter from './routes/users.js';
 
 const app = express();
 
@@ -13,11 +11,9 @@ app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({extended: false}));
 app.use(cookieParser());
-app.use(express.static('public'));
+app.use(express.static('client/build'));
 
-app.use('/', indexRouter);
 app.use('/login', loginRouter);
-app.use('/users', usersRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -32,7 +28,7 @@ app.use(function(err, req, res, next) {
 
   // render the error page
   res.status(err.status || 500);
-  res.render('error');
+  res.json('error');
 });
 
 

@@ -1,0 +1,10 @@
+# Server dev files and dependencies
+node_modules
+npm-debug.log
+
+# Client dev files and dependencies
+client/build
+client/node_modules
+client/npm-debug.log*
+client/yarn-debug.log*
+client/yarn-error.log*

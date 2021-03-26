@@ -25,8 +25,8 @@
 
 on:
   push:
-    paths:
-      - "server/**"
+    paths-ignore:
+      - "**README.md"
 
 name: Deploy to Amazon ECS
 
@@ -64,7 +64,6 @@ jobs:
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
-        working-directory: server
 
       - name: Fill in the new image ID in the Amazon ECS task definition
         id: task-def
