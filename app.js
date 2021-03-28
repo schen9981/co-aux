@@ -1,19 +1,31 @@
 import createError from 'http-errors';
 import express from 'express';
-import cookieParser from 'cookie-parser';
 import logger from 'morgan';
+import session from 'express-session';
 
+import indexRouter from './routes/index.js';
 import loginRouter from './routes/login.js';
+import apiRouter from './routes/api.js';
 
 const app = express();
 
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({extended: false}));
-app.use(cookieParser());
+
+app.set('trust proxy', 1);
+app.use(session({
+  secret: 'coaux secret',
+  resave: false,
+  saveUninitialized: true}));
+
+// Set static resources directory to be the react build folder.
 app.use(express.static('client/build'));
 
+app.use('/', indexRouter);
 app.use('/login', loginRouter);
+app.use('/api', apiRouter);
+
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

@@ -1,5 +1,7 @@
+# Dev files
 .DS_Store
 *.code-workspace
+.vscode
 
 # Logs
 logs

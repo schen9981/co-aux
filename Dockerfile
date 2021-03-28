@@ -1,7 +1,5 @@
 FROM node:latest
 
-ENV PORT=80
-
 # Create app directory
 WORKDIR /usr/src/app
 
@@ -34,5 +32,7 @@ RUN npm run build
 # Back to app directory and run server
 WORKDIR /usr/src/app
 
+ENV PORT=80
+ENV NODE_ENV=prod
 EXPOSE 80
 CMD [ "node", "--experimental-json-modules", "./bin/www.js"]
