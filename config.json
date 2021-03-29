@@ -18,7 +18,7 @@
             "client_id": "8440f4e9ad42444aa64012094f77158c",
             "client_secret": "e2717a41fa934c1c9ae509556d923879",
             "scope": "user-read-private user-read-email",
-            "redirect_uri": "http://coaux-balancer-1596915724.us-east-1.elb.amazonaws.com/login/token"
+            "redirect_uri": "http://ec2-44-192-58-84.compute-1.amazonaws.com/login/token"
         },
         "database": {
             "host": "cluster0.vqtzj.mongodb.net",
