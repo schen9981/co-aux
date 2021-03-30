@@ -1,24 +1,39 @@
 import React from 'react';
 import './HomePage.css';
+import LoginPage from "./LoginPage/LoginPage";
+import LoadingPage from "./LoadingPage/LoadingPage";
 
 type HomePageProps = {
 };
 
 type HomePageState = {
+  animationComplete: boolean
 };
 
-export default class App extends React.Component<HomePageProps, HomePageState> {
+export default class HomePage extends React.Component<HomePageProps, HomePageState> {
   constructor(props: HomePageProps) {
       super(props);
+      this.state = {
+        animationComplete: false
+      };
+      this.loadingHandler = this.loadingHandler.bind(this);
   }
 
-  handleLogin() {
-    window.location.href = `/login`;
+  loadingHandler() {
+    this.setState({animationComplete: true});
   }
 
   render() {
-      return (
-        <button type="submit" onClick={this.handleLogin}> Connect to Spotify </button>
-      );
+    let currPage;
+    if (this.state.animationComplete) {
+      currPage = <LoginPage />;
+    } else {
+      currPage = <LoadingPage loadingCompleteFunc={this.loadingHandler} />
+    }
+    return (
+      <div className="home">
+         {currPage}
+      </div>
+    );
   }
 }

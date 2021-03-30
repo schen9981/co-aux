@@ -1,0 +1,34 @@
+/* whole page styling */
+.login {
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+}
+
+/* welcome banner styling */
+.welcome-message {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 30px;
+}
+
+.welcome-message h1 {
+  color: #2A9D8F;
+  font-weight: bold;
+  font-size: 6vh;
+}
+
+/* buttons styling */
+.login-options {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.login-button {
+  background-color: #E76F51;
+  color: white;
+  height: 80px;
+  width: 350px;
+  font-size: 30px;
+}
