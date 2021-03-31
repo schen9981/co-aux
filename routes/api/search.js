@@ -8,11 +8,11 @@ router.get('/', function(req, res) {
   axios
       .get('https://api.spotify.com/v1/search', {
         headers: {
-          Authorization: `Bearer ${req.session.tokens.access_token}`,
+          'Authorization': `Bearer ${req.session.tokens.access_token}`,
         },
         params: {
-          q: req.query.name,
-          type: 'album,track,artist',
+          'q': req.query.name,
+          'type': 'track',
         },
       })
       .then((response) => res.json(response.data))

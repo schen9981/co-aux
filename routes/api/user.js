@@ -8,7 +8,7 @@ router.get('/', function(req, res) {
   axios
       .get('https://api.spotify.com/v1/me', {
         headers: {
-          Authorization: `Bearer ${req.session.tokens.access_token}`,
+          'Authorization': `Bearer ${req.session.tokens.access_token}`,
         },
       })
       .then((response) => res.json(response.data))

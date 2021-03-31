@@ -24,19 +24,28 @@ router.get('/', function(req, res) {
 // Redirected path to get access and refresh tokens.
 router.get('/token', function(req, res) {
   const params = new URLSearchParams({
-    code: req.query.code,
-    redirect_uri: context.redirect_uri,
-    grant_type: 'authorization_code',
-    client_id: context.client_id,
-    client_secret: context.client_secret,
+    'code': req.query.code,
+    'redirect_uri': context.redirect_uri,
+    'grant_type': 'authorization_code',
+    'client_id': context.client_id,
+    'client_secret': context.client_secret,
   });
   axios
       .post('https://accounts.spotify.com/api/token', params)
       .then((response) => {
         req.session.tokens = {
-          access_token: response.data.access_token,
-          refresh_token: response.data.refresh_token,
+          'access_token': response.data.access_token,
+          'refresh_token': response.data.refresh_token,
         };
+        return axios
+            .get('https://api.spotify.com/v1/me', {
+              headers: {
+                'Authorization': `Bearer ${req.session.tokens.access_token}`,
+              },
+            });
+      })
+      .then((response) => {
+        req.session.user_id = response.data.id;
         res.redirect('/');
       })
       .catch((err) => {
