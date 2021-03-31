@@ -73,8 +73,10 @@ export default class LaunchPage extends React.Component<LaunchPageProps, LaunchP
       currPage = <LoadingPage loadingCompleteFunc={this.loadingHandler} />;
     }
     return (
-      <div className="launch">
-         {currPage}
+      <div className="App">
+        <div className="launch">
+          {currPage}
+        </div>
       </div>
     );
   }

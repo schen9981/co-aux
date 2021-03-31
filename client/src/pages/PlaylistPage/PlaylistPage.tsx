@@ -17,8 +17,10 @@ export default class PlaylistPage extends React.Component<PlaylistPageProps & Ro
 
   render() {
     return (
-      <div className="playlist">
-        {this.props.match.params.id}
+      <div className="App">
+        <div className="curr-playlist">
+          {this.props.match.params.id}
+        </div>
       </div>
     );
   }

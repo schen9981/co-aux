@@ -1,11 +1,9 @@
 import React from 'react';
 import './App.css';
-import { createBrowserHistory } from "history";
 import { BrowserRouter as Router, Switch, Route, Redirect } from "react-router-dom";
 import LaunchPage from './pages/LaunchPage/LaunchPage';
 import PlaylistPage from './pages/PlaylistPage/PlaylistPage';
 
-const history = createBrowserHistory();
 
 type AppProps = {
 };
