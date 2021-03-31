@@ -1,9 +1,9 @@
 import React from 'react';
 import './App.css';
 import { createBrowserHistory } from "history";
-import { Router, Switch, Route } from "react-router-dom";
-import HomePage from './pages/HomePage/HomePage';
-// import RedirectPage from './pages/RedirectPage/RedirectPage';
+import { BrowserRouter as Router, Switch, Route, Redirect } from "react-router-dom";
+import LaunchPage from './pages/LaunchPage/LaunchPage';
+import PlaylistPage from './pages/PlaylistPage/PlaylistPage';
 
 const history = createBrowserHistory();
 
@@ -20,14 +20,12 @@ export default class App extends React.Component<AppProps, AppState> {
 
   render() {
       return (
-        <Router history={history}>
-          <Switch>
-            <Route path="/">
-              <div className="App">
-                <HomePage />
-              </div>
-            </Route>
-          </Switch>
+        <Router>
+          <Route exact path="/" component={LaunchPage}>
+          </Route>
+
+          <Route exact path="/playlist/:id" component={PlaylistPage}>
+          </Route>
         </Router>
       );
   }

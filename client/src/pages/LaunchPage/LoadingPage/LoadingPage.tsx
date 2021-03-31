@@ -20,7 +20,7 @@ export default class LoadingPage extends React.Component<LoadingPageProps, Loadi
       <div className="loading">
         <CountdownCircleTimer
           isPlaying
-          duration={2}
+          duration={1.2}
           size={900}
           strokeWidth={6}
           colors={[

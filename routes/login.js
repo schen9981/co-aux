@@ -40,7 +40,8 @@ router.get('/token', function(req, res) {
         res.redirect('/');
       })
       .catch((err) => {
-        console.log(err); res.json(err);
+        console.log(err);
+        res.json(err);
       });
 });
 

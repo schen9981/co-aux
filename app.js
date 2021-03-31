@@ -21,7 +21,6 @@ app.use(session({
 
 // Set static resources directory to be the react build folder.
 app.use(express.static('client/build'));
-
 app.use('/', indexRouter);
 app.use('/login', loginRouter);
 app.use('/api', apiRouter);

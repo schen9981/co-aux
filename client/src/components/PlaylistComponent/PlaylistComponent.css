@@ -1,0 +1,25 @@
+.playlist {
+  width: 300px;
+  height: 300px;
+  margin-right: 50px;
+  box-shadow: 5px 5px 4px rgba(0, 0, 0, 0.25);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+
+.playlist-icon {
+  width: 250px;
+  flex-grow: 0.8;
+}
+
+.playlist-name-container {
+  width: 100%;
+}
+
+.playlist-name-container p {
+  font-size: 25px;
+  margin: 0px 0px 0px 20px;
+}

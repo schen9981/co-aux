@@ -14,7 +14,7 @@ export default class LoginPage extends React.Component<LoginPageProps, LoginPage
   }
 
   handleLogin() {
-    window.location.href = `/login`;
+    window.location.href = '/login';
   }
 
   render() {

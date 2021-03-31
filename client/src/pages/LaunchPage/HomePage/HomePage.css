@@ -1,0 +1,27 @@
+.home {
+  width: 100vw;
+  margin: 80px;
+}
+
+.welcome-header h1 {
+  color: #264653;
+  font-weight: bold;
+}
+
+.section-header {
+  color: #2A9D8F;
+  font-weight: bold;
+  font-size: 20px;
+}
+
+.host-playlists {
+  display: flex;
+}
+
+.contribute-playlists {
+  display: flex;
+}
+
+.new-playlist-options {
+  display: flex;
+}
