@@ -1,8 +1,8 @@
 import React from 'react';
 import './App.css';
-import { BrowserRouter as Router, Switch, Route, Redirect } from "react-router-dom";
+import { BrowserRouter as Router, Route } from "react-router-dom";
 import LaunchPage from './pages/LaunchPage/LaunchPage';
-import PlaylistPage from './pages/PlaylistPage/PlaylistPage';
+import QueuePage from './pages/QueuePage/QueuePage';
 
 
 type AppProps = {
@@ -22,7 +22,7 @@ export default class App extends React.Component<AppProps, AppState> {
           <Route exact path="/" component={LaunchPage}>
           </Route>
 
-          <Route exact path="/playlist/:id" component={PlaylistPage}>
+          <Route exact path="/playlist/:id/" component={QueuePage}>
           </Route>
         </Router>
       );

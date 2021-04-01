@@ -1,0 +1,11 @@
+.queue-name {
+  display: flex;
+}
+
+.curr-queue {
+  background-color: #F4A261;
+}
+
+.queue-container {
+  display: flex;
+}
