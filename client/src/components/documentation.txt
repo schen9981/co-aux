@@ -7,3 +7,13 @@ Component : function
         - 
 ************************************************************************
 
+NewPlaylistComponent : reusable component for the ui of the button for creating new playlists
+    required props:
+        - color : hex string for color of button
+        - onClickModal : function that handles behavior for when button is clicked
+
+PlaylistComponent : reusable component for the ui of the button for all displayed playlists
+    required props:
+        - color: hex string for color of button
+        - title: title of playlist
+        - onClickHandler: function that handles behavior for when button is clicked

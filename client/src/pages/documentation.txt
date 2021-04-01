@@ -5,3 +5,9 @@ List of page of the application and their functions
 Page : function
 ************************************************************************
 
+LaunchPage : landing screen of site, with 3 subpages depending on login/authentication:
+  (1) LoadingPage : for any loading/rendering buffer time
+  (2) LoginPage : for all users, initial entry point (will navigate to spotify if not logged in yet)
+  (3) HomePage: for logged in users
+
+QueuePage : screen to view queue and voting session
