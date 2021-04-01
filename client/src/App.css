@@ -11,6 +11,33 @@ button {
   padding: 10px;
 }
 
+input {
+  font-size: 15px;
+}
+
+.form-group {
+  margin-top: 1rem;
+}
+
 button:hover {
   background-color: #264653;
+}
+
+button.close:hover {
+  background-color: transparent;
+  color: #264653;
+}
+
+.modal-content {
+  background-color: #FFFEF2;
+}
+
+.modal-title {
+  color: #264653;
+  font-weight: bold;
+  font-size: 30px;
+}
+
+.modal-body {
+  padding: 2.5rem;
 }

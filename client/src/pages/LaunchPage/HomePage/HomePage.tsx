@@ -68,7 +68,10 @@ export default class HomePage extends React.Component<HomePageProps, HomePageSta
   newPlaylistClose() {
     this.setState({
       modalSelection: 'initial',
-      newPlaylistModal: false
+      newPlaylistModal: false,
+      queueCreated: false,
+      newQueueId: "",
+      newQueueName: ""
     })
   }
 
@@ -189,8 +192,12 @@ export default class HomePage extends React.Component<HomePageProps, HomePageSta
         // case where queue was created (user inputted selection and clicked 'create')
         modalContent = (
           <div className="new-playlist-options">
-            <h2>queue created!</h2>
-            <Link to={`/playlist/${this.state.newQueueId}`}>go to queue now</Link>
+            <div className="queue-create-message">
+              <h2>your queue <span style={{fontWeight: 700}}> {this.state.newQueueName} </span> has been created!</h2>
+              <button>
+                <Link to={`/playlist/${this.state.newQueueId}`}>check out your queue</Link>
+              </button>
+            </div>
           </div>
         );
       } else {
@@ -212,9 +219,9 @@ export default class HomePage extends React.Component<HomePageProps, HomePageSta
                   ))}
                 </Form.Control>
               </Form.Group>
-              <Button type="submit">
+              <button type="submit">
                 create queue
-              </Button>
+              </button>
             </Form>
           </div>
         );
@@ -225,8 +232,12 @@ export default class HomePage extends React.Component<HomePageProps, HomePageSta
         // case where queue was created (user inputted selection and clicked 'create')
         modalContent = (
           <div className="new-playlist-options">
-            <h2>queue created!</h2>
-            <Link to={`/playlist/${this.state.newQueueId}`}>go to queue now</Link>
+            <div className="queue-create-message">
+              <h2>your queue <span style={{fontWeight: 700}}> {this.state.newQueueName} </span> has been created!</h2>
+              <button>
+                <Link to={`/playlist/${this.state.newQueueId}`}>check out your queue</Link>
+              </button>
+            </div>
           </div>
         );
       } else {
@@ -286,7 +297,7 @@ export default class HomePage extends React.Component<HomePageProps, HomePageSta
           </div>
         </div>
 
-        <Modal show={this.state.newPlaylistModal} onHide={this.newPlaylistClose}>
+        <Modal size="lg" show={this.state.newPlaylistModal} onHide={this.newPlaylistClose}>
           <Modal.Header closeButton>
             <Modal.Title>create new playlist</Modal.Title>
           </Modal.Header>
