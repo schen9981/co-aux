@@ -38,6 +38,10 @@
   width: 100%;
 }
 
+.create-queue-button {
+  color: white;
+}
+
 .new-playlist-options button {
   background-color: #2A9D8F;
   font-size: 20px !important;

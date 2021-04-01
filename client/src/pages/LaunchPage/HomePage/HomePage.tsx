@@ -219,7 +219,7 @@ export default class HomePage extends React.Component<HomePageProps, HomePageSta
                   ))}
                 </Form.Control>
               </Form.Group>
-              <button type="submit">
+              <button className="create-queue-button" type="submit">
                 create queue
               </button>
             </Form>
@@ -249,9 +249,9 @@ export default class HomePage extends React.Component<HomePageProps, HomePageSta
                 onChange={e => this.setState({ newQueueName: e.target.value })}
                 value={this.state.newQueueName}
                 type="text" id="empty-queue-title" name="empty-queue-title" />
-              <Button type="submit">
+              <button className="create-queue-button" type="submit">
                 create queue
-              </Button>
+              </button>
             </Form>
           </div>
         );
