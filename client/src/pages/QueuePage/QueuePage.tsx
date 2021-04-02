@@ -3,6 +3,10 @@ import { RouteComponentProps } from 'react-router';
 import { Link } from 'react-router-dom';
 import './QueuePage.css';
 import { Table, Modal, Form, Button } from 'react-bootstrap';
+// get our fontawesome imports
+import { faHeart } from "@fortawesome/free-regular-svg-icons";
+import { faPlusSquare } from "@fortawesome/free-regular-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 interface QueueRouteParams {id: string};
 
@@ -10,7 +14,8 @@ type Track = {
   trackName: string,
   artistName: string,
   albumName: string,
-  uri: string
+  uri: string,
+  votes: number
 }
 
 type QueuePageProps  = {
@@ -40,7 +45,8 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
           trackName: "",
           artistName: "",
           albumName: "",
-          uri: ""
+          uri: "",
+          votes: 0
         },
         searchResults: [],
         votingSession: []
@@ -106,7 +112,8 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
       trackName: trackName,
       artistName: artistName,
       albumName: albumName,
-      uri: uri
+      uri: uri,
+      votes: 0
     }; 
     return trackObj;
   }
@@ -122,11 +129,11 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
       trackName: trackName,
       artistName: artistName,
       albumName: albumName,
-      uri: uri
+      uri: uri,
+      votes: 0
     }; 
     return trackObj;
   }
-
 
   onChangeSongSelection(event : any) {
     let value = event.target.value.split('+');
@@ -134,7 +141,8 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
       trackName: value[0],
       artistName: value[1],
       albumName: '',
-      uri: value[2]
+      uri: value[2],
+      votes: 0
     };
     this.setState({
       songSelection: selectedTrack
@@ -163,8 +171,9 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
     this.setState({ 
       votingSession: [...this.state.votingSession, this.state.songSelection],
       addSongModal: false
+    }, () => {
+      // console.log(this.state.votingSession);
     });
-    console.log(this.state.votingSession);
   }
 
   renderModalContent() {
@@ -213,6 +222,48 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
     return modalContent;
   }
 
+  incrementVote(track: Track) {
+    var updatedTracks = this.state.votingSession;
+    updatedTracks.map((t) => {
+      if(t.albumName == track.albumName && t.artistName == track.artistName && t.trackName == track.trackName && t.uri == track.uri) {
+        t.votes++;
+      }
+    });
+    updatedTracks.sort((a,b) => b.votes - a.votes);
+    this.setState({ votingSession: updatedTracks });
+  }
+
+  addToQueue(track: Track) {
+    var trackIndex = 0;
+    var votingTracks = [...this.state.votingSession];
+    votingTracks.map((t, index) => {
+      if(t.albumName == track.albumName && t.artistName == track.artistName && t.trackName == track.trackName && t.uri == track.uri) {
+        trackIndex = index;
+      }
+    });
+    votingTracks.splice(trackIndex,1);
+    this.insertTracks(this.state.votingSession[trackIndex].uri);
+    this.setState({ 
+      tracks: [...this.state.tracks, this.state.votingSession[trackIndex]],
+      votingSession: votingTracks
+    }, () => {
+      // console.log(this.state.tracks);
+      // console.log(this.state.votingSession);
+    });
+  }
+
+  insertTracks(trackURI: String) {
+    fetch('/api/playlist/6ZaFdsdci68plRoiWwUwj3/tracks', 
+    {
+      method: 'POST', 
+      headers: {'content-type':'application/json'}, 
+      body: JSON.stringify({
+          uris: [ trackURI ]})
+    })
+    .then(resp => resp.json())
+    .then(resp => console.log(resp))
+    .catch(err => console.log(err));
+  }
 
   render() {
     let modalContent = this.renderModalContent();
@@ -255,6 +306,8 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
                   <th>song name</th>
                   <th>artists</th>
                   <th>album name</th>
+                  <th>votes</th>
+                  <th>add to queue</th>
                 </tr>
               </thead>
               <tbody>
@@ -263,6 +316,17 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
                     <td>{track.trackName}</td>
                     <td>{track.artistName}</td>
                     <td>{track.albumName}</td>
+                    <td>
+                      <button className="rowBtn" onClick={() => this.incrementVote(track)}>
+                        <FontAwesomeIcon icon={faHeart} style={{color: "grey", paddingRight: "5px"}}/>
+                        {track.votes}
+                      </button>
+                    </td>
+                    <td>
+                      <button className="rowBtn" onClick={() => this.addToQueue(track)}>
+                        <FontAwesomeIcon icon={faPlusSquare} style={{color: "grey"}}/>
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>

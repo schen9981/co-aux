@@ -9,3 +9,12 @@
 .queue-container {
   display: flex;
 }
+
+.rowBtn {
+  height: 38px;
+  padding: 0 30px;
+  font-size: 11px;
+  background-color: #FFFEF2;
+  border-radius: 6px;
+  font-size: 16px;
+}

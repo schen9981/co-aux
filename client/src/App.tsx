@@ -3,7 +3,7 @@ import './App.css';
 import { BrowserRouter as Router, Route } from "react-router-dom";
 import LaunchPage from './pages/LaunchPage/LaunchPage';
 import QueuePage from './pages/QueuePage/QueuePage';
-
+import 'font-awesome/css/font-awesome.min.css';
 
 type AppProps = {
 };
