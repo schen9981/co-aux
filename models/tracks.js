@@ -1,5 +1,7 @@
 import axios from 'axios';
-import {getAccessToken} from './playlist.js';
+import playlistModel from './playlist.js';
+
+const {getAccessToken} = playlistModel;
 
 /**
  *
