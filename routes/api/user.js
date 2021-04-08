@@ -1,17 +1,20 @@
 import express from 'express';
-import axios from 'axios';
+import userModel from '../../models/user.js';
+
+const {listUsers, getUserInfo} = userModel;
 
 // eslint-disable-next-line new-cap
 const router = express.Router();
 
 router.get('/', function(req, res) {
-  axios
-      .get('https://api.spotify.com/v1/me', {
-        headers: {
-          'Authorization': `Bearer ${req.session.tokens.access_token}`,
-        },
-      })
-      .then((response) => res.json(response.data))
+  getUserInfo(req.session.tokens.accessToken)
+      .then((data) => res.json(data))
+      .catch((err) => res.json(err));
+});
+
+router.get('/all', function(req, res) {
+  listUsers()
+      .then((data) => res.json(data))
       .catch((err) => res.json(err));
 });
 
