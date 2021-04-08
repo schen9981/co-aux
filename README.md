@@ -141,8 +141,8 @@ Co-Aux is a web application app that allows its users to collaborate and interac
   - Path Parameters:
     - playlist_id - the id of a playlist
   - Body Parameters:
-    - id - the spotify id of a user
-    - role - the role of a user. Possible roles include editor or viewer.
+    - id - REQUIRED - the spotify id of a user
+    - role - REQUIRED - the role of a user. Possible roles include editor or viewer.
 
 #### Remove a Participant from a Playlist
   - Endpoint: DELETE /api/playlist/{playlist_id}/participant/{participant_id}
