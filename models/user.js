@@ -8,6 +8,23 @@ config.prod.spotify : config.dev.spotify;
 
 /**
  *
+ * @param {string} accessToken
+ * @return {Array}
+ */
+async function listSpotifyPlaylists(accessToken) {
+  const url = 'https://api.spotify.com/v1/me/playlists';
+  const config = {
+    headers: {
+      'Authorization': `Bearer ${accessToken}`,
+    },
+  };
+  const response = await axios.get(url, config);
+  return response.data.items;
+}
+
+
+/**
+ *
  * @param {string} id
  * @param {string} name
  */
@@ -84,6 +101,43 @@ async function getAccessTokens(code) {
 
 /**
  *
+ * @param {string} accessToken
+ * @return {boolean}
+ */
+async function validAccessToken(accessToken) {
+  const url = 'https://api.spotify.com/v1/me';
+  const config = {
+    headers: {
+      'Authorization': `Bearer ${accessToken}`,
+    },
+  };
+  try {
+    const response = await axios.get(url, config);
+    return response.status === 200;
+  } catch (e) {
+    return false;
+  }
+}
+
+/**
+ *
+ * @param {string} refreshToken
+ */
+async function refreshAccessToken(refreshToken) {
+  const url = 'https://accounts.spotify.com/api/token';
+  const data = new URLSearchParams({
+    'grant_type': 'refresh_token',
+    'refresh_token': refreshToken,
+    'client_id': context.clientId,
+    'client_secret': context.clientSecret,
+  });
+  const response = await axios.post(url, data);
+  return response.data.access_token;
+}
+
+
+/**
+ *
  * @return {string}
  */
 function getSpotifyLoginPage() {
@@ -99,7 +153,10 @@ function getSpotifyLoginPage() {
 
 export default {
   listUsers,
+  listSpotifyPlaylists,
   getUserInfo,
   getSpotifyLoginPage,
   getAccessTokens,
+  validAccessToken,
+  refreshAccessToken,
 };

@@ -16,7 +16,7 @@ const {
 const router = express.Router();
 
 router.get('/', function(req, res) {
-  listPlaylists(req.session.userID)
+  listPlaylists(req.session.userID, req.query.role)
       .then((data) => res.json(data))
       .catch((err) => res.json(err));
 });

@@ -1,5 +1,8 @@
 import getDB from '../database/connection.js';
 import axios from 'axios';
+import userModel from './user.js';
+
+const {validAccessToken, refreshAccessToken} = userModel;
 
 /**
  * Get a playlist's information from spotify server
@@ -74,24 +77,54 @@ async function updateSpotifyPlaylist(id, accessToken,
  * @param {string} id
  * @param {string} userID
  * @return {string}
+ * @throws
  */
-async function getAccessToken(id, userID) {
+async function getPlaylistAccessToken(id, userID) {
   const db = await getDB();
   const query = {id, [`participants.${userID}`]: {$exists: true}};
   const record = await db.collection('playlists').findOne(query);
-  return record.tokens.accessToken;
+  // No matching record, return empty string
+  if (!record) {
+    throw new Error('unauthorized user');
+  }
+
+  let accessToken = record.tokens.accessToken;
+  const refreshToken = record.tokens.refreshToken;
+  if (!(await validAccessToken(accessToken))) {
+    accessToken = await refreshAccessToken(refreshToken);
+    await updatePlaylistAccessToken(id, accessToken);
+  }
+
+  return accessToken;
+}
+
+/**
+ *
+ * @param {string} id
+ * @param {string} accessToken
+ */
+async function updatePlaylistAccessToken(id, accessToken) {
+  const db = await getDB();
+  const query = {id};
+  const updateDocument = {$set: {[`tokens.accessToken`]: accessToken}};
+  await db.collection('playlists').updateOne(query, updateDocument);
 }
 
 
 /**
  *
  * @param {string} userID
+ * @param {string} role
  * @return {object}
  */
-async function listDBPlaylists(userID) {
+async function listDBPlaylists(userID, role) {
   const db = await getDB();
-  const query = {[`participants.${userID}`]: {$exists: true}};
-  const records = await db.collection('playlists').find().toArray(query);
+  let query = {[`participants.${userID}`]: {$exists: true}};
+  // If specified role, select only documents with the specified role
+  if (role) {
+    query = {[`participants.${userID}`]: role};
+  }
+  const records = await db.collection('playlists').find(query).toArray(query);
   return records;
 }
 
@@ -130,15 +163,22 @@ async function removeDBPlaylist(id, userID) {
 /**
  * Queries the database for all playlists that a user participates in
  * @param {string} userID
+ * @param {string} role
  * @return {object}
  */
-async function listPlaylists(userID) {
+async function listPlaylists(userID, role) {
   // Query the database to get all playli
-  const records = await listDBPlaylists(userID);
+  const records = await listDBPlaylists(userID, role);
 
   // Query the spotify database to get details of all the lists.
-  return Promise.all(records.map(
-      (rec) => getSpotifyPlaylist(rec.id, rec.tokens.accessToken)));
+  const result = await Promise.all(records.map(
+      async (rec) => {
+        const accessToken = await getPlaylistAccessToken(rec.id, userID);
+        const result = await getSpotifyPlaylist(rec.id, accessToken);
+        return result;
+      }));
+
+  return result;
 }
 
 /**
@@ -150,7 +190,7 @@ async function listPlaylists(userID) {
 async function getPlaylist(id, userID) {
   // Query the database to get the playlist record
   // with the given id and the user participates in
-  const accessToken = getAccessToken(id, userID);
+  const accessToken = getPlaylistAccessToken(id, userID);
   return await getSpotifyPlaylist(id, accessToken);
 }
 
@@ -186,7 +226,7 @@ async function createPlaylist(userID, accessToken, refreshToken,
  * @return {object}
  */
 async function updatePlaylist(id, userID, name, collaborative, description) {
-  const accessToken = await getAccessToken(id, userID);
+  const accessToken = await getPlaylistAccessToken(id, userID);
   const result = await updateSpotifyPlaylist(id, accessToken,
       name, collaborative, description);
   return result;
@@ -209,5 +249,5 @@ export default {
   createPlaylist,
   updatePlaylist,
   removePlaylist,
-  getAccessToken,
+  getAccessToken: getPlaylistAccessToken,
 };
