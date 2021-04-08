@@ -33,7 +33,7 @@ async function createParticipant(playlistID, userID,
     [`participants.${userID}`]: 'owner',
   };
   const updateDocument = {
-    $set: {participants: {[participantID]: participantRole}},
+    $set: {[`participants.${participantID}`]: participantRole},
   };
   const result = await db.collection('playlists')
       .updateOne(query, updateDocument);
@@ -54,7 +54,7 @@ async function removeParticipant(playlistID, userID, participantID) {
     [`participants.${userID}`]: 'owner',
   };
   const updateDocument = {
-    $unset: {participants: {[participantID]: ''}},
+    $unset: {[`participants.${participantID}`]: ''},
   };
   const result = await db.collection('playlists')
       .updateOne(query, updateDocument);
