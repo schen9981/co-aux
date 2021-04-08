@@ -23,13 +23,17 @@ async function listParticipants(playlistID, userID) {
  */
 async function createParticipant(playlistID, userID,
     participantID, participantRole) {
+  if (!participantRole || !participantID) {
+    throw new Error('id or role of a participant unspecified');
+  }
+
   const db = await getDB();
   const query = {
     id: playlistID,
     [`participants.${userID}`]: 'owner',
   };
   const updateDocument = {
-    $set: {participants: {[participantID]: participantRole}},
+    $set: {[`participants.${participantID}`]: participantRole},
   };
   const result = await db.collection('playlists')
       .updateOne(query, updateDocument);
@@ -50,7 +54,7 @@ async function removeParticipant(playlistID, userID, participantID) {
     [`participants.${userID}`]: 'owner',
   };
   const updateDocument = {
-    $unset: {participants: {[participantID]: ''}},
+    $unset: {[`participants.${participantID}`]: ''},
   };
   const result = await db.collection('playlists')
       .updateOne(query, updateDocument);
