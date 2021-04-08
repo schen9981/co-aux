@@ -15,7 +15,9 @@ type Track = {
   artistName: string,
   albumName: string,
   uri: string,
-  votes: number
+  votes: number,
+  duration: 0,
+  albumCover: ""
 }
 
 type QueuePageProps  = {
@@ -46,7 +48,9 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
           artistName: "",
           albumName: "",
           uri: "",
-          votes: 0
+          votes: 0,
+          duration: 0,
+          albumCover: ""
         },
         searchResults: [],
         votingSession: []
@@ -107,13 +111,17 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
     let uri = trackJson.track.uri;
     let artistArr = trackJson.track.album.artists.map((artistJson : any) => artistJson.name);
     let artistName = artistArr.join(', ');
+    let duration = trackJson.track.duration_ms; 
+    let albumCover = trackJson.track.album.images[2].url;
 
     let trackObj : Track = {
       trackName: trackName,
       artistName: artistName,
       albumName: albumName,
       uri: uri,
-      votes: 0
+      votes: 0,
+      duration: duration,
+      albumCover: albumCover
     }; 
     return trackObj;
   }
@@ -124,13 +132,17 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
     let uri = searchJson.uri;
     let artistArr = searchJson.album.artists.map((artistJson : any) => artistJson.name);
     let artistName = artistArr.join(', ');
+    let duration = searchJson.duration_ms; 
+    let albumCover = searchJson.album.images[2];
 
     let trackObj : Track = {
       trackName: trackName,
       artistName: artistName,
       albumName: albumName,
       uri: uri,
-      votes: 0
+      votes: 0,
+      duration: duration,
+      albumCover: albumCover
     }; 
     return trackObj;
   }
@@ -142,7 +154,9 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
       artistName: value[1],
       albumName: '',
       uri: value[2],
-      votes: 0
+      votes: 0,
+      duration: 0,
+      albumCover: ""
     };
     this.setState({
       songSelection: selectedTrack
@@ -270,7 +284,7 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
 
     return (
       <div className="App">
-        <Link to="/">go back</Link>
+        <Link to="/">Return to Home Page</Link>
         <div className="curr-queue">
           <div className="queue-name">
             <h1>{this.state.queueName}</h1>
@@ -284,17 +298,23 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
             <Table bordered hover>
               <thead>
                 <tr>
-                  <th>song name</th>
-                  <th>artists</th>
-                  <th>album name</th>
+                  <th>#</th>
+                  <th>Song Title</th>
+                  <th>Album</th>
                 </tr>
               </thead>
               <tbody>
-                {this.state.tracks.map((track : Track) => (
+                {this.state.tracks.map((track : Track, index) => (
                   <tr>
-                    <td>{track.trackName}</td>
-                    <td>{track.artistName}</td>
-                    <td>{track.albumName}</td>
+                    <td style={{fontWeight: "bold"}}>{index+1}</td>
+                    <td className="songContainer">
+                      <img src={track.albumCover}></img>
+                      <div className="songInfoContainer">
+                        <div style={{fontWeight: "bold"}}>{track.trackName}</div>
+                        <div>{track.artistName}</div>
+                      </div>
+                    </td>
+                    <td style={{fontWeight: "bold"}}>{track.albumName}</td>
                   </tr>
                 ))}
               </tbody>
