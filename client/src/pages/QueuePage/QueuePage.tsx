@@ -75,11 +75,13 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
   }
 
   fetchPlaylistInfo() {
+    console.log("playlistid: ", this.props.match.params.id);
     fetch('/api/playlist/' + this.props.match.params.id)
     .then((resp) => {
       return resp.json();
     })
     .then((json) => {
+      console.log("queue json: ", json);
       this.setState({
         queueName: json.name
       });

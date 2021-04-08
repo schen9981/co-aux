@@ -22,7 +22,9 @@ type HomePageProps = {
 type HomePageState = {
   newPlaylistModal: boolean,
   modalSelection: string,
-  playlists: PlaylistObject[],
+  allPlaylists: PlaylistObject[],
+  hostPlaylists: PlaylistObject[],
+  contributorPlaylists: PlaylistObject[],
   preloadedPlaylistId: string,
   newQueueName: string,
   newQueueId: string,
@@ -35,7 +37,9 @@ export default class HomePage extends React.Component<HomePageProps, HomePageSta
       this.state = {
         newPlaylistModal: false,
         modalSelection: "initial",
-        playlists: [],
+        allPlaylists: [],
+        hostPlaylists: [],
+        contributorPlaylists: [],
         newQueueName: '',
         newQueueId: '',
         preloadedPlaylistId: '',
@@ -52,10 +56,11 @@ export default class HomePage extends React.Component<HomePageProps, HomePageSta
         return resp.json();
       })
       .then((json) => {
-        let playlists = json.items;
-        this.setState({
-          playlists: playlists
-        });
+        // let playlists = json.items;
+        console.log("new playlist endpoint: ", json);
+        // this.setState({
+        //   allPlaylists: playlists
+        // });
       });
   }
 
@@ -214,7 +219,7 @@ export default class HomePage extends React.Component<HomePageProps, HomePageSta
                 <Form.Label>chose one of your playlists to populate your new queue:</Form.Label>
                 <Form.Control as="select" custom onChange={this.onChangePlaylistSelection.bind(this)}>
                   <option value="playlist">chose your playlist</option>
-                  {this.state.playlists.map((playlist) => (
+                  {this.state.allPlaylists.map((playlist) => (
                     <option value={playlist.id}>{playlist.name}</option>
                   ))}
                 </Form.Control>
