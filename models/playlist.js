@@ -77,9 +77,9 @@ async function updateSpotifyPlaylist(id, accessToken,
  */
 async function getAccessToken(id, userID) {
   const db = await getDB();
-  const query = {id, participants: {$elemMatch: {userID}}};
+  const query = {id, [`participants.${userID}`]: {$exists: true}};
   const record = await db.collection('playlists').findOne(query);
-  return record.tokens.access_token;
+  return record.tokens.accessToken;
 }
 
 
@@ -90,7 +90,7 @@ async function getAccessToken(id, userID) {
  */
 async function listDBPlaylists(userID) {
   const db = await getDB();
-  const query = {participants: {$elemMatch: {userID}}};
+  const query = {[`participants.${userID}`]: {$exists: true}};
   const records = await db.collection('playlists').find().toArray(query);
   return records;
 }
@@ -107,7 +107,8 @@ async function createDBPlaylist(id, userID, accessToken, refreshToken) {
   const query = {
     id,
     tokens: {accessToken: accessToken, refreshToken: refreshToken},
-    participants: [{userID, role: 'owner'}],
+    participants: {[userID]: 'owner'},
+    votelist: {},
   };
   await db.collection('playlists').insertOne(query);
 }
@@ -121,7 +122,7 @@ async function removeDBPlaylist(id, userID) {
   const db = await getDB();
   const query = {
     id,
-    participants: {$elemMatch: {userId: userID, role: 'owner'}},
+    [`participants.${userID}`]: 'owner',
   };
   await db.collection('playlist').deleteOne(query);
 }
@@ -133,7 +134,7 @@ async function removeDBPlaylist(id, userID) {
  */
 async function listPlaylists(userID) {
   // Query the database to get all playli
-  const records = listDBPlaylists(userID);
+  const records = await listDBPlaylists(userID);
 
   // Query the spotify database to get details of all the lists.
   return Promise.all(records.map(

@@ -9,6 +9,10 @@ Co-Aux is a web application app that allows its users to collaborate and interac
   - Endpoint: GET /api/user 
   - Response: Response body contains a user's profile information in JSON format
 
+#### Get All users' Profile
+  - Endpoint: GET /api/user/all
+  - Response: Response body contains all users'profile registerd in database.
+
 ### Playlist
 #### Get a User's Playlists
   - Endpoint: GET /api/playlist
@@ -75,6 +79,7 @@ Co-Aux is a web application app that allows its users to collaborate and interac
 
 #### Insert Tracks Into a Playlist
   - Endpoint: POST /api/playlist/{playlist_id}/tracks
+  - Path Parameters
     - {playlist_id} - the id of a playlist
   - Body Parameters:
     - uris - an array of uris in JSON format
@@ -98,6 +103,8 @@ Co-Aux is a web application app that allows its users to collaborate and interac
 
 #### Remove Tracks From a Playlist
   - Endpoint: DELETE /api/playlist/{playlist_id}/tracks
+  - Path Parameters
+    - {playlist_id} - the id of a playlist
   - Body Parameters:
     - tracks - an array of track objects in JSON format
   - Response: Response body contains snapshot_id in JSON format
@@ -115,6 +122,72 @@ Co-Aux is a web application app that allows its users to collaborate and interac
     .then(resp => resp.json())
     .then(resp => console.log(resp))
     .catch(err => console.log(err));
+  ```
+
+### Participant
+#### Get Participants of a Playlist
+  - Endpoint: GET /api/playlist/{playlist_id}/participant
+  - Path Parameters:
+    - playlist_id - the id of a playlist
+
+#### Add a Participant to a Playlist
+  - Endpoint: POST /api/playlist/{playlist_id}/participant
+  - Path Parameters:
+    - playlist_id - the id of a playlist
+  - Body Parameters:
+    - id - the spotify id of a user
+    - role - the role of a user. Possible roles include editor or viewer.
+
+#### Remove a Participant from a Playlist
+  - Endpoint: DELETE /api/playlist/{playlist_id}/participant/{participant_id}
+  - Path Parameters:
+    - playlist_id - the id of a playlist
+    - participant_id - the id of a participant
+
+### Votelist
+The implementation of vote list uses socket.io rather than normal http request as it requires synchronization among a group of users
+
+#### Get the vote list of a playlist
+  - Namespace: /api/playlist/votelist
+  - Connection Parameters:
+    - playlist_id - the id of a playlist
+  - Event: get
+
+#### Update the votes of a track 
+  - Namespace: /api/playlist/votelist
+  - Connection Parameters:
+    - playlist_id - the id of a playlist
+  - Event: update
+  - Event Parameters:
+    - track_id: the id of a track
+    - vote: the number of votes for a track
+  - Example Request:
+  ```javascript
+  import {io} from 'socket.io-client';
+
+  // The playlist_id variable should contain the id of a playlist
+  const socket = io('/api/playlist/votelist', {query:`id=${playlist_id}`}); 
+
+  socket.on('connect', () => {
+    console.log('connection eastablished');
+  }));
+
+  // This will register an event handler for udpate events 
+  // which can be triggered by other clients
+  socket.on('update', (data) => {
+    // data is an object, it contains all voted tracks and its votes
+    // data = {track_id1: votes1, track_id2: votes2}
+
+    // Update page with new votelist data
+  })
+
+  // use this to ask the server to send update
+  socket.emit('get');
+
+  // user this to update the votes of a track
+  // It is a frontend's responsibility to implement any vote restriction
+  socket.emit('update', track_id, vote);
+
   ```
 
 ### Search

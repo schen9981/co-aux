@@ -23,8 +23,9 @@ router.post('/', function(req, res) {
       .catch((err) => res.json(err));
 });
 
-router.delete('/:id', function(req, res) {
-  removeParticipant(req.params.id, req.session.userID, req.body.id)
+router.delete('/:participant_id', function(req, res) {
+  removeParticipant(req.params.id,
+      req.session.userID, req.params.participant_id)
       .then((data) => res.json(data))
       .catch((err) => res.json(err));
 });

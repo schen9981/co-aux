@@ -20,7 +20,8 @@
     "http-errors": "~1.6.3",
     "missing": "0.0.1",
     "mongodb": "^3.6.5",
-    "morgan": "~1.9.1"
+    "morgan": "~1.9.1",
+    "socket.io": "^4.0.1"
   },
   "devDependencies": {
     "eslint": "^7.22.0",

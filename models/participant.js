@@ -8,9 +8,9 @@ import getDB from '../database/connection.js';
  */
 async function listParticipants(playlistID, userID) {
   const db = await getDB();
-  const query = {id: playlistID, participants: {$elemMatch: {userID}}};
-  const record = db.collection('playlists').findOne(query);
-  return await record.tokens.participants;
+  const query = {id: playlistID, [`participants.${userID}`]: {$exists: true}};
+  const record = await db.collection('playlists').findOne(query);
+  return record.participants;
 }
 
 /**
@@ -26,14 +26,14 @@ async function createParticipant(playlistID, userID,
   const db = await getDB();
   const query = {
     id: playlistID,
-    participants: {$elemMatch: {userID, role: 'owner'}},
+    [`participants.${userID}`]: 'owner',
   };
   const updateDocument = {
-    $push: {participants: {userID: participantID, role: participantRole}},
+    $set: {participants: {[participantID]: participantRole}},
   };
   const result = await db.collection('playlists')
       .updateOne(query, updateDocument);
-  return result;
+  return result.participants;
 }
 
 /**
@@ -47,14 +47,14 @@ async function removeParticipant(playlistID, userID, participantID) {
   const db = await getDB();
   const query = {
     id: playlistID,
-    participants: {$elemMatch: {userID, role: 'owner'}},
+    [`participants.${userID}`]: 'owner',
   };
   const updateDocument = {
-    $pull: {participants: {userID: participantID}},
+    $unset: {participants: {[participantID]: ''}},
   };
   const result = await db.collection('playlists')
       .updateOne(query, updateDocument);
-  return result;
+  return result.participants;
 }
 
 export default {

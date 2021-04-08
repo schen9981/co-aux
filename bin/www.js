@@ -19,14 +19,15 @@ app.set('port', port);
 /**
  * Create HTTP server.
  */
-const server = createServer(app);
+const httpServer = createServer(app);
+app.get('socketio').listen(httpServer);
 
 /**
  * Listen on provided port, on all network interfaces.
  */
-server.listen(port);
-server.on('error', onError);
-server.on('listening', onListening);
+httpServer.listen(port);
+httpServer.on('error', onError);
+httpServer.on('listening', onListening);
 
 /**
  * Normalize a port into a number, string, or false.
@@ -81,7 +82,7 @@ function onError(error) {
  * Event listener for HTTP server "listening" event.
  */
 function onListening() {
-  const addr = server.address();
+  const addr = httpServer.address();
   const bind = typeof addr === 'string' ?
     'pipe ' + addr :
     'port ' + addr.port;

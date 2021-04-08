@@ -1,57 +1,28 @@
 import express from 'express';
-import querystring from 'querystring';
-import config from '../config.json';
-import axios from 'axios';
+import userModel from '../models/user.js';
+
+const {getSpotifyLoginPage, getUserInfo, getAccessTokens} = userModel;
 
 // eslint-disable-next-line new-cap
 const router = express.Router();
 
-const context = process.env.NODE_ENV === 'prod' ?
-config.prod.spotify : config.dev.spotify;
-
 // Redirect to login page of spotify.
 router.get('/', function(req, res) {
-  res.redirect(`https://accounts.spotify.com/authorize?${
-    querystring.stringify({
-      response_type: 'code',
-      client_id: context.clientId,
-      scope: context.scope,
-      redirect_uri: context.redirectUri,
-    })
-  }`);
+  res.redirect(getSpotifyLoginPage());
 });
 
 // Redirected path to get access and refresh tokens.
 router.get('/token', function(req, res) {
-  const params = new URLSearchParams({
-    'code': req.query.code,
-    'redirect_uri': context.redirectUri,
-    'grant_type': 'authorization_code',
-    'client_id': context.clientId,
-    'client_secret': context.clientSecret,
-  });
-  axios
-      .post('https://accounts.spotify.com/api/token', params)
-      .then((response) => {
-        req.session.tokens = {
-          'accessToken': response.data.access_token,
-          'refreshToken': response.data.refresh_token,
-        };
-        return axios
-            .get('https://api.spotify.com/v1/me', {
-              headers: {
-                'Authorization': `Bearer ${req.session.tokens.accessToken}`,
-              },
-            });
+  getAccessTokens(req.query.code)
+      .then((tokens) => {
+        req.session.tokens = tokens;
+        return getUserInfo(tokens.accessToken);
       })
-      .then((response) => {
-        req.session.userID = response.data.id;
+      .then((userInfo) => {
+        req.session.userID = userInfo.id;
         res.redirect('/');
       })
-      .catch((err) => {
-        console.log(err);
-        res.json(err);
-      });
+      .catch((err) => console.log(err));
 });
 
 export default router;
