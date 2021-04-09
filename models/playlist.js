@@ -190,7 +190,7 @@ async function listPlaylists(userID, role) {
 async function getPlaylist(id, userID) {
   // Query the database to get the playlist record
   // with the given id and the user participates in
-  const accessToken = getPlaylistAccessToken(id, userID);
+  const accessToken = await getPlaylistAccessToken(id, userID);
   return await getSpotifyPlaylist(id, accessToken);
 }
 
