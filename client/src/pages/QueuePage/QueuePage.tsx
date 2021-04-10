@@ -7,6 +7,7 @@ import { Table, Modal, Form, Button } from 'react-bootstrap';
 import { faHeart } from "@fortawesome/free-regular-svg-icons";
 import { faPlusSquare } from "@fortawesome/free-regular-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {io, Socket} from 'socket.io-client';
 
 interface QueueRouteParams {id: string};
 
@@ -27,13 +28,16 @@ type QueuePageState = {
   queueName: string,
   tracks: Track[],
   addSongModal: boolean,
+  addUserModal: boolean,
   songSearchTerm: string,
+  userSearchTerm: string,
   modalStatusSearching: boolean,
   songSelection: Track,
   searchResults: Track[],
   votingSession: Track[] 
 };
 
+var socket: Socket;
 export default class QueuePage extends React.Component<QueuePageProps & RouteComponentProps<QueueRouteParams>, QueuePageState> {
   constructor(props: QueuePageProps & RouteComponentProps<QueueRouteParams>) {
       super(props);
@@ -41,7 +45,9 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
         queueName: "",
         tracks: [],
         addSongModal: false,
+        addUserModal: false,
         songSearchTerm: "",
+        userSearchTerm: "",
         modalStatusSearching: true,
         songSelection: {
           trackName: "",
@@ -55,16 +61,40 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
         searchResults: [],
         votingSession: []
       };
+      // The playlist_id variable should contain the id of a playlist
+      socket = io('/api/playlist/votelist', {
+        query: {
+          "id":this.props.match.params.id
+        }
+      }); 
+  
+      socket.on('connect', () => {
+        console.log('connection established');
+      });
   }
 
   componentDidMount() {
     this.fetchPlaylistInfo();
     this.fetchTracks();
+    // This will register an event handler for update events 
+    // which can be triggered by other clients
+    socket.on('update', (data) => {
+      // data is an object, it contains all voted tracks and its votes
+      // data = {track_id1: votes1, track_id2: votes2}
+      // Update page with new votelist data
+      this.updateVotingSession(data);
+  })
   }
 
   addSongModalOpen() {
     this.setState({
       addSongModal: true
+    });
+  }
+
+  addUserModalOpen() {
+    this.setState({
+      addUserModal: true
     });
   }
 
@@ -74,14 +104,18 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
     });
   }
 
+  addUserModalClose() {
+    this.setState({
+      addUserModal: false
+    });
+  }
+
   fetchPlaylistInfo() {
-    console.log("playlistid: ", this.props.match.params.id);
     fetch('/api/playlist/' + this.props.match.params.id)
     .then((resp) => {
       return resp.json();
     })
     .then((json) => {
-      console.log("queue json: ", json);
       this.setState({
         queueName: json.name
       });
@@ -183,7 +217,30 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
     });
   }
 
+  updateVotingSession(data: any) {
+    var updatedTracks = this.state.votingSession;
+    Object.keys(data).map(function(key, index) {
+      let trackIndex = updatedTracks.findIndex(t => t.uri == key);
+      updatedTracks[trackIndex].votes = data[key];
+    });
+    updatedTracks.sort((a,b) => b.votes - a.votes);
+    this.setState({ 
+      votingSession: updatedTracks
+    }, () => {
+      console.log("updated voting session from socket: ", this.state.votingSession);
+    });
+  }
+
   addToVoteSession() {
+    this.setState({ 
+      votingSession: [...this.state.votingSession, this.state.songSelection],
+      addSongModal: false
+    }, () => {
+      // console.log(this.state.votingSession);
+    });
+  }
+
+  addToMemberList() {
     this.setState({ 
       votingSession: [...this.state.votingSession, this.state.songSelection],
       addSongModal: false
@@ -238,25 +295,64 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
     return modalContent;
   }
 
+  // renderParticipantModalContent() {
+  //   let participantModalContent;
+  //   if (this.state.modalStatusSearching) {
+  //     participantModalContent = (
+  //       <Form onSubmit={this.searchForUser.bind(this)}>
+  //         <Form.Label>Search for users:</Form.Label>
+  //         <Form.Control 
+  //           onChange={e => this.setState({ userSearchTerm: e.target.value })}
+  //           value={this.state.userSearchTerm}
+  //           type="text" id="user-search" name="user-search" />
+  //         <Button type="submit">
+  //           Search for users
+  //         </Button>
+  //       </Form>
+  //     );
+  //   } else {
+  //     participantModalContent = (
+  //       <Form onSubmit={this.searchForUser.bind(this)}>
+  //         <Form.Label>Search for users:</Form.Label>
+  //         <Form.Control 
+  //           onChange={e => this.setState({ userSearchTerm: e.target.value })}
+  //           value={this.state.userSearchTerm}
+  //           type="text" id="user-search" name="user-search" />
+  //         <Button type="submit">
+  //           Search for users
+  //         </Button>
+  //         <Form.Group>
+  //           <Form.Label>Results from Search</Form.Label>
+  //           <Form.Control as="select" custom onChange={this.onChangeUserSelection.bind(this)}>
+  //             <option value="user">chose your user</option>
+  //             {this.state.userSearchResults.map((result) => (
+  //               <option value={result.displayName}>{result.displayName}</option>
+  //             ))}
+  //           </Form.Control>
+  //         </Form.Group>
+  //         <Button onClick={this.addToMemberList.bind(this)}>
+  //           Add user to member list
+  //         </Button>
+  //       </Form>
+  //     )
+  //   }
+
+  //   return participantModalContent;
+  // }
+
   incrementVote(track: Track) {
     var updatedTracks = this.state.votingSession;
-    updatedTracks.map((t) => {
-      if(t.albumName == track.albumName && t.artistName == track.artistName && t.trackName == track.trackName && t.uri == track.uri) {
-        t.votes++;
-      }
-    });
+    let trackIndex = updatedTracks.findIndex(t => t.albumName == track.albumName && t.artistName == track.artistName && t.trackName == track.trackName && t.uri == track.uri);
+    updatedTracks[trackIndex].votes++;
+    socket.emit('update', updatedTracks[trackIndex].uri, updatedTracks[trackIndex].votes);
+    socket.emit('get');
     updatedTracks.sort((a,b) => b.votes - a.votes);
     this.setState({ votingSession: updatedTracks });
   }
 
   addToQueue(track: Track) {
-    var trackIndex = 0;
     var votingTracks = [...this.state.votingSession];
-    votingTracks.map((t, index) => {
-      if(t.albumName == track.albumName && t.artistName == track.artistName && t.trackName == track.trackName && t.uri == track.uri) {
-        trackIndex = index;
-      }
-    });
+    var trackIndex = votingTracks.findIndex(t => t.albumName == track.albumName && t.artistName == track.artistName && t.trackName == track.trackName && t.uri == track.uri);
     votingTracks.splice(trackIndex,1);
     this.insertTracks(this.state.votingSession[trackIndex].uri);
     this.setState({ 
@@ -269,7 +365,7 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
   }
 
   insertTracks(trackURI: String) {
-    fetch('/api/playlist/6ZaFdsdci68plRoiWwUwj3/tracks', 
+    fetch('/api/playlist/' + this.props.match.params.id + '/tracks', 
     {
       method: 'POST', 
       headers: {'content-type':'application/json'}, 
@@ -357,12 +453,21 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
 
           <Modal show={this.state.addSongModal} onHide={this.addSongModalClose.bind(this)}>
             <Modal.Header closeButton>
-              <Modal.Title>add a song to the queue!</Modal.Title>
+              <Modal.Title>Search for Songs</Modal.Title>
             </Modal.Header>
             <Modal.Body>
               {modalContent}
             </Modal.Body>
           </Modal>
+
+          {/* <Modal show={this.state.addUserModal} onHide={this.addUserModalClose.bind(this)}>
+            <Modal.Header closeButton>
+              <Modal.Title>Add Members</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+              {participantModalContent}
+            </Modal.Body>
+          </Modal> */}
 
         </div>
       </div>

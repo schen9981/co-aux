@@ -51,16 +51,49 @@ export default class HomePage extends React.Component<HomePageProps, HomePageSta
   }
 
   componentDidMount() {
-    fetch('/api/playlist')
+    // Get all spotify playlists for pre-loading
+    fetch('/api/user/playlist')
       .then((resp) => {
         return resp.json();
       })
       .then((json) => {
-        // let playlists = json.items;
-        console.log("new playlist endpoint: ", json);
-        // this.setState({
-        //   allPlaylists: playlists
-        // });
+        console.log("playlists: ", json);
+        this.setState({
+          allPlaylists: json
+        });
+      });
+
+      // Get owned playlists
+      fetch('/api/playlist?role=owner')
+      .then((resp) => {
+        return resp.json();
+      })
+      .then((json) => {
+        this.setState({
+          hostPlaylists: json
+        });
+      });
+
+      // Get editor playlists
+      fetch('/api/playlist?role=editor')
+      .then((resp) => {
+        return resp.json();
+      })
+      .then((json) => {
+        this.setState({
+          contributorPlaylists: json
+        });
+      });
+
+      // Get viewer playlists
+      fetch('/api/playlist?role=viewer')
+      .then((resp) => {
+        return resp.json();
+      })
+      .then((json) => {
+        this.setState({
+          contributorPlaylists: [...this.state.contributorPlaylists, json]
+        });
       });
   }
 
@@ -99,7 +132,7 @@ export default class HomePage extends React.Component<HomePageProps, HomePageSta
       return resp.json();
     })
     .then((json) => {
-      console.log(json.items);
+      console.log("json tracks?: ", json);
       let uris = json.items.map((trackData : any) => { return trackData.track.uri})
       this.addPreloadedToPlaylist(uris);
     })
@@ -154,6 +187,18 @@ export default class HomePage extends React.Component<HomePageProps, HomePageSta
     .catch((err) => console.log(err));
   }
 
+  loadPlaylist(playlistId : string) {
+    console.log("playlistId: ", playlistId);
+    // get request to spotify api to load selected playlist
+    fetch('/api/playlist/' + playlistId)
+    .then((resp) => resp.json())
+    .then((json) => {
+      console.log("json response: ", json);
+      // this.routeToPlaylist("/playlist/" + json.id);
+    })
+    .catch((err) => console.log(err));
+  }
+
   createEmptyPlaylist(event : any) {
     event.preventDefault();
     // post request to spotify api to create new playlist
@@ -187,8 +232,8 @@ export default class HomePage extends React.Component<HomePageProps, HomePageSta
     if (this.state.modalSelection === 'initial') {
       modalContent = (
         <div className="new-playlist-options">
-          <PlaylistComponent onClickHandler={() => this.setModalContentSelector("empty")} title="empty playlist" color="#2A9D8F"/>
-          <PlaylistComponent onClickHandler={() => this.setModalContentSelector("preloaded")} title="pre-loaded playlist" color="#F4A261"/>
+          <button onClick={() => this.setModalContentSelector("empty")} title="empty playlist" color="#2A9D8F"/>
+          <button onClick={() => this.setModalContentSelector("preloaded")} title="pre-loaded playlist" color="#F4A261"/>
         </div>
       );
       return modalContent;
@@ -265,7 +310,6 @@ export default class HomePage extends React.Component<HomePageProps, HomePageSta
     }
   }
 
-
   routeToPlaylist(playlistName : string) {
     window.location.href = playlistName;
   }
@@ -276,28 +320,30 @@ export default class HomePage extends React.Component<HomePageProps, HomePageSta
     return (
       <div className="home">
         <div className="welcome-header">
-          <h1> welcome, {this.props.userData.display_name}</h1>
+          <h1> Welcome, {this.props.userData.display_name}</h1>
         </div>
-
         <div className="section-header">
-            <h1> playlists you host </h1>
+            <h1> Your Co-Auxed Playlists </h1>
         </div>
-        <div className="host-playlists">
-          <div className="existing-host-playlists">
-            <PlaylistComponent onClickHandler={() => this.routeToPlaylist("temp")} title="playlist 1" color="#E9C46A"/>
-          </div>
+        <div className="host-playlists" >
+          {this.state.hostPlaylists.map((playlist : PlaylistObject, index) => (
+            <div className="existing-host-playlists">
+              <PlaylistComponent title={playlist.name} id={playlist.id} color="#E9C46A"/>
+            </div>
+            ))}
           <div className="new-host-playlist">
             <NewPlaylistComponent onClickModal={this.newPlaylistOpen} color="#E9C46A"/>
           </div>
         </div>
-
         <div className="section-header">
-            <h1>playlists you contribute to</h1>
+            <h1> Playlist Sessions You've Joined</h1>
         </div>
         <div className="contribute-playlists">
-          <div className="existing-contribute-playlists">
-            <PlaylistComponent onClickHandler={() => this.routeToPlaylist("temp")} title="playlist 1" color="#F4A261"/>
-          </div>
+          {this.state.contributorPlaylists.map((playlist : PlaylistObject, index) => (
+            <div className="existing-contribute-playlists">
+              <PlaylistComponent title={playlist.name} id={playlist.id} color="#F4A261"/>
+            </div>
+          ))}
           <div className="new-contribute-playlist">
           </div>
         </div>

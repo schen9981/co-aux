@@ -1,11 +1,12 @@
 import React from 'react';
 import './PlaylistComponent.css';
 import playlistIcon from '../../assets/playlist-icon.svg';
+import { Link } from 'react-router-dom';
 
 type PlaylistComponentProps = {
   color: string,
   title: string,
-  onClickHandler: () => void
+  id: string
 };
 
 type PlaylistComponentState = {
@@ -18,10 +19,10 @@ export default class PlaylistComponent extends React.Component<PlaylistComponent
 
   render() {
     return (
-      <button onClick={this.props.onClickHandler} className="playlist" style={{backgroundColor: this.props.color}}>
+      <button className="playlist" style={{backgroundColor: this.props.color}}>
         <img className="playlist-icon" alt="3 aux chords" src={playlistIcon}/>
         <div className="playlist-name-container">
-          <p>{this.props.title}</p>
+        <Link to={`/playlist/${this.props.id}`}>{this.props.title}</Link>
         </div>
       </button>
     );
