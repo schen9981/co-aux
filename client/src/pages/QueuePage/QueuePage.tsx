@@ -11,6 +11,16 @@ import {io, Socket} from 'socket.io-client';
 
 interface QueueRouteParams {id: string};
 
+type User = {
+  id: string,
+  name: string
+}
+
+type Participant = {
+  id: string,
+  role: string
+}
+
 type Track = {
   trackName: string,
   artistName: string,
@@ -34,7 +44,10 @@ type QueuePageState = {
   modalStatusSearching: boolean,
   songSelection: Track,
   searchResults: Track[],
-  votingSession: Track[] 
+  userSearchResults: User[],
+  userSelection: Participant,
+  votingSession: Track[],
+  participants: Participant[] 
 };
 
 var socket: Socket;
@@ -59,23 +72,32 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
           albumCover: ""
         },
         searchResults: [],
-        votingSession: []
+        userSearchResults: [],
+        userSelection: {
+          id: "",
+          role: ""
+        },
+        votingSession: [],
+        participants: [] 
       };
-      // The playlist_id variable should contain the id of a playlist
-      socket = io('/api/playlist/votelist', {
-        query: {
-          "id":this.props.match.params.id
-        }
-      }); 
-  
-      socket.on('connect', () => {
-        console.log('connection established');
-      });
   }
 
   componentDidMount() {
     this.fetchPlaylistInfo();
     this.fetchTracks();
+    this.fetchParticipants();
+
+    // The playlist_id variable should contain the id of a playlist
+    socket = io('/api/playlist/votelist', {
+      query: {
+        "id":this.props.match.params.id
+      }
+    }); 
+
+    socket.on('connect', () => {
+      console.log('connection established');
+    });
+
     // This will register an event handler for update events 
     // which can be triggered by other clients
     socket.on('update', (data) => {
@@ -141,6 +163,30 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
     })
   }
 
+  fetchParticipants() {
+    fetch('/api/playlist/' + this.props.match.params.id + '/participant')
+    .then((resp) => {
+      return resp.json();
+    })
+    .then((json) => {
+      let participants : Participant[] = [];
+      Object.keys(json).map(function(key, index) {
+        let participant : Participant = {
+          id: key,
+          role: json[key]
+        };
+        participants.push(participant);
+      });
+      
+      this.setState({
+        participants: participants
+      })
+    })
+    .catch((err) => {
+      console.log("Error: " + err);
+    })
+  }
+
   extractTrackJson(trackJson : any) {
     let trackName = trackJson.track.name;
     let albumName = trackJson.track.album.name;
@@ -199,6 +245,28 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
     });
   }
 
+  onChangeUserSelection(event : any) {
+    let value = event.target.value;
+    let user : Participant = {
+      id: value,
+      role: this.state.userSelection.role
+    };
+    this.setState({
+      userSelection: user
+    });
+  }
+
+  onChangeRoleSelection(event : any) {
+    let value = event.target.value;
+    let user : Participant = {
+      id: this.state.userSelection.id,
+      role: value
+    };
+    this.setState({
+      userSelection: user
+    });
+  }
+
   searchForSong(event : any) {
     event.preventDefault();
     fetch('/api/search?name=' + this.state.songSearchTerm)
@@ -209,6 +277,25 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
       let tracks : [Track] = json.tracks.items.map((trackData : any) => { return this.extractResultJson(trackData)})
       this.setState({
         searchResults: tracks,
+        modalStatusSearching: false
+      })
+    })
+    .catch((err) => {
+      console.log("Error: " + err)
+    });
+  }
+
+  searchForUser(event : any) {
+    event.preventDefault();
+    fetch('/api/user/all')
+    .then((resp) => {
+      return resp.json();
+    })
+    .then((json) => {
+      console.log("users; ", json);
+      let users : [User] = json;
+      this.setState({
+        userSearchResults: users,
         modalStatusSearching: false
       })
     })
@@ -232,6 +319,7 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
   }
 
   addToVoteSession() {
+    socket.emit('update', this.state.songSelection.uri, 1);
     this.setState({ 
       votingSession: [...this.state.votingSession, this.state.songSelection],
       addSongModal: false
@@ -240,12 +328,26 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
     });
   }
 
+  addParticipants() {
+    fetch('/api/playlist/' + this.props.match.params.id + '/participant', 
+    {
+      method: 'POST', 
+      headers: {'content-type':'application/json'}, 
+      body: JSON.stringify({
+          id: this.state.userSelection.id,
+          role: this.state.userSelection.role
+        })
+    })
+    .catch(err => console.log(err));
+  }
+
   addToMemberList() {
+    this.addParticipants();
     this.setState({ 
-      votingSession: [...this.state.votingSession, this.state.songSelection],
-      addSongModal: false
+      participants: [...this.state.participants, this.state.userSelection],
+      addUserModal: false
     }, () => {
-      // console.log(this.state.votingSession);
+      console.log(this.state.participants);
     });
   }
 
@@ -295,50 +397,55 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
     return modalContent;
   }
 
-  // renderParticipantModalContent() {
-  //   let participantModalContent;
-  //   if (this.state.modalStatusSearching) {
-  //     participantModalContent = (
-  //       <Form onSubmit={this.searchForUser.bind(this)}>
-  //         <Form.Label>Search for users:</Form.Label>
-  //         <Form.Control 
-  //           onChange={e => this.setState({ userSearchTerm: e.target.value })}
-  //           value={this.state.userSearchTerm}
-  //           type="text" id="user-search" name="user-search" />
-  //         <Button type="submit">
-  //           Search for users
-  //         </Button>
-  //       </Form>
-  //     );
-  //   } else {
-  //     participantModalContent = (
-  //       <Form onSubmit={this.searchForUser.bind(this)}>
-  //         <Form.Label>Search for users:</Form.Label>
-  //         <Form.Control 
-  //           onChange={e => this.setState({ userSearchTerm: e.target.value })}
-  //           value={this.state.userSearchTerm}
-  //           type="text" id="user-search" name="user-search" />
-  //         <Button type="submit">
-  //           Search for users
-  //         </Button>
-  //         <Form.Group>
-  //           <Form.Label>Results from Search</Form.Label>
-  //           <Form.Control as="select" custom onChange={this.onChangeUserSelection.bind(this)}>
-  //             <option value="user">chose your user</option>
-  //             {this.state.userSearchResults.map((result) => (
-  //               <option value={result.displayName}>{result.displayName}</option>
-  //             ))}
-  //           </Form.Control>
-  //         </Form.Group>
-  //         <Button onClick={this.addToMemberList.bind(this)}>
-  //           Add user to member list
-  //         </Button>
-  //       </Form>
-  //     )
-  //   }
+  renderUserModalContent() {
+    let userModalContent;
+    if (this.state.modalStatusSearching) {
+      userModalContent = (
+        <Form onSubmit={this.searchForUser.bind(this)}>
+          <Form.Label>Search for users:</Form.Label>
+          <Form.Control 
+            onChange={e => this.setState({ userSearchTerm: e.target.value })}
+            value={this.state.userSearchTerm}
+            type="text" id="user-search" name="user-search" />
+          <Button type="submit">
+            Search for users
+          </Button>
+        </Form>
+      );
+    } else {
+      userModalContent = (
+        <Form onSubmit={this.searchForUser.bind(this)}>
+          <Form.Label>Search for users:</Form.Label>
+          <Form.Control 
+            onChange={e => this.setState({ userSearchTerm: e.target.value })}
+            value={this.state.userSearchTerm}
+            type="text" id="user-search" name="user-search" />
+          <Button type="submit">
+            Search for users
+          </Button>
+          <Form.Group>
+            <Form.Label>Results from search</Form.Label>
+            <Form.Control as="select" custom onChange={this.onChangeUserSelection.bind(this)}>
+              <option value="user">chose your user</option>
+              {this.state.userSearchResults.map((result) => (
+                <option value={result.id}>{result.name}</option>
+              ))}
+            </Form.Control>
+            <Form.Control as="select" custom onChange={this.onChangeRoleSelection.bind(this)}>
+              <option value="role">chose their role</option>
+              <option value="editor">Editor</option>
+              <option value="viewer">Viewer</option>
+            </Form.Control>
+          </Form.Group>
+          <Button onClick={this.addToMemberList.bind(this)}>
+            Add user to member list
+          </Button>
+        </Form>
+      )
+    }
 
-  //   return participantModalContent;
-  // }
+    return userModalContent;
+  }
 
   incrementVote(track: Track) {
     var updatedTracks = this.state.votingSession;
@@ -379,6 +486,7 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
 
   render() {
     let modalContent = this.renderModalContent();
+    let userModalContent = this.renderUserModalContent();
 
     return (
       <div className="App">
@@ -389,7 +497,11 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
           </div>
 
           <button onClick={this.addSongModalOpen.bind(this)}>
-            add a song
+            Search for songs
+          </button>
+
+          <button onClick={this.addUserModalOpen.bind(this)}>
+            Search for members
           </button>
 
           <div className="queue-container">
@@ -460,14 +572,14 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
             </Modal.Body>
           </Modal>
 
-          {/* <Modal show={this.state.addUserModal} onHide={this.addUserModalClose.bind(this)}>
+          <Modal show={this.state.addUserModal} onHide={this.addUserModalClose.bind(this)}>
             <Modal.Header closeButton>
               <Modal.Title>Add Members</Modal.Title>
             </Modal.Header>
             <Modal.Body>
-              {participantModalContent}
+              {userModalContent}
             </Modal.Body>
-          </Modal> */}
+          </Modal>
 
         </div>
       </div>

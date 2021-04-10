@@ -184,6 +184,8 @@ The implementation of vote list uses socket.io rather than normal http request a
     // data is an object, it contains all voted tracks and its votes
     // data = {track_id1: votes1, track_id2: votes2}
 
+    // * Result will not include tracks w/ vote=0
+
     // Update page with new votelist data
   })
 
@@ -193,6 +195,12 @@ The implementation of vote list uses socket.io rather than normal http request a
   // user this to update the votes of a track
   // It is a frontend's responsibility to implement any vote restriction
   socket.emit('update', track_id, vote);
+
+  // use this to add track to voting session
+  socket.emit('update', track_id, 1);
+
+   // use this to delete track to voting session
+  socket.emit('update', track_id, 0);
 
   ```
 

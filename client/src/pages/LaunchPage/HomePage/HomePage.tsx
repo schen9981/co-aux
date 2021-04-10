@@ -57,7 +57,6 @@ export default class HomePage extends React.Component<HomePageProps, HomePageSta
         return resp.json();
       })
       .then((json) => {
-        console.log("playlists: ", json);
         this.setState({
           allPlaylists: json
         });
