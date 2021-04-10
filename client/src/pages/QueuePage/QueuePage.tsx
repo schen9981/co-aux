@@ -11,14 +11,10 @@ import {io, Socket} from 'socket.io-client';
 
 interface QueueRouteParams {id: string};
 
-type User = {
-  id: string,
-  name: string
-}
-
 type Participant = {
   id: string,
-  role: string
+  role: string,
+  name: string
 }
 
 type Track = {
@@ -37,6 +33,7 @@ type QueuePageProps  = {
 type QueuePageState = {
   queueName: string,
   tracks: Track[],
+  isViewer: boolean,
   addSongModal: boolean,
   addUserModal: boolean,
   songSearchTerm: string,
@@ -44,10 +41,11 @@ type QueuePageState = {
   modalStatusSearching: boolean,
   songSelection: Track,
   searchResults: Track[],
-  userSearchResults: User[],
+  userSearchResults: Participant[],
   userSelection: Participant,
   votingSession: Track[],
-  participants: Participant[] 
+  participants: Participant[],
+  allUsers: Participant[],
 };
 
 var socket: Socket;
@@ -57,6 +55,7 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
       this.state = {
         queueName: "",
         tracks: [],
+        isViewer: false,
         addSongModal: false,
         addUserModal: false,
         songSearchTerm: "",
@@ -75,28 +74,22 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
         userSearchResults: [],
         userSelection: {
           id: "",
-          role: ""
+          role: "",
+          name: ""
         },
         votingSession: [],
-        participants: [] 
+        participants: [],
+        allUsers: [] 
       };
   }
 
-  componentDidMount() {
+  async componentDidMount() {
     this.fetchPlaylistInfo();
     this.fetchTracks();
-    this.fetchParticipants();
-
-    // The playlist_id variable should contain the id of a playlist
-    socket = io('/api/playlist/votelist', {
-      query: {
-        "id":this.props.match.params.id
-      }
-    }); 
-
-    socket.on('connect', () => {
-      console.log('connection established');
-    });
+    await this.fetchAllUsers();
+    await this.fetchParticipants();
+    console.log("done fetching participants: ", this.state.participants);
+    await this.determineRole();
 
     // This will register an event handler for update events 
     // which can be triggered by other clients
@@ -105,7 +98,25 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
       // data = {track_id1: votes1, track_id2: votes2}
       // Update page with new votelist data
       this.updateVotingSession(data);
-  })
+    });
+  }
+
+  async determineRole() {
+    await fetch('/api/user')
+    .then((resp) => {
+      return resp.json();
+    })
+    .then((json) => {
+      let id = json.id;
+      let userIndex = this.state.participants.findIndex(participant => participant.id == id);
+      let isViewer = (this.state.participants[userIndex].role == "viewer");
+      this.setState({
+        isViewer: isViewer
+      });
+    })
+    .catch((err) => {
+      console.log("Error: " + err);
+    });
   }
 
   addSongModalOpen() {
@@ -129,6 +140,29 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
   addUserModalClose() {
     this.setState({
       addUserModal: false
+    });
+  }
+
+  async fetchAllUsers() {
+    await fetch('/api/user/all')
+    .then((resp) => {
+      return resp.json();
+    })
+    .then((json) => {
+      let all : Participant[] = json.map((user : any) => {
+        let participant : Participant = {
+          id: user.id,
+          role: "",
+          name: user.name
+        };
+        return participant;
+      });
+      this.setState({
+        allUsers: all
+      });
+    })
+    .catch((err) => {
+      console.log("Error: " + err)
     });
   }
 
@@ -163,24 +197,27 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
     })
   }
 
-  fetchParticipants() {
-    fetch('/api/playlist/' + this.props.match.params.id + '/participant')
+  async fetchParticipants() {
+    await fetch('/api/playlist/' + this.props.match.params.id + '/participant')
     .then((resp) => {
       return resp.json();
     })
     .then((json) => {
       let participants : Participant[] = [];
+      let allUsers = this.state.allUsers;
       Object.keys(json).map(function(key, index) {
+        let userIndex = allUsers.findIndex((user : Participant) => user.id == key);
         let participant : Participant = {
           id: key,
-          role: json[key]
+          role: json[key],
+          name: allUsers[userIndex].name
         };
         participants.push(participant);
       });
       
       this.setState({
         participants: participants
-      })
+      });
     })
     .catch((err) => {
       console.log("Error: " + err);
@@ -249,7 +286,8 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
     let value = event.target.value;
     let user : Participant = {
       id: value,
-      role: this.state.userSelection.role
+      role: this.state.userSelection.role,
+      name: this.state.userSelection.name
     };
     this.setState({
       userSelection: user
@@ -260,7 +298,8 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
     let value = event.target.value;
     let user : Participant = {
       id: this.state.userSelection.id,
-      role: value
+      role: value,
+      name: this.state.userSelection.name
     };
     this.setState({
       userSelection: user
@@ -293,7 +332,7 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
     })
     .then((json) => {
       console.log("users; ", json);
-      let users : [User] = json;
+      let users : [Participant] = json;
       this.setState({
         userSearchResults: users,
         modalStatusSearching: false
@@ -398,9 +437,31 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
   }
 
   renderUserModalContent() {
-    let userModalContent;
+    let userModalContent = [];
+    console.log("current participants: ", this.state.participants);
+    userModalContent.push(
+      <Table striped bordered hover size="sm">
+        <thead>
+          <tr>
+            <th> Username </th>
+            <th> ID </th>
+            <th> Role </th>
+          </tr>
+        </thead>
+        <tbody>
+          {this.state.participants.map((user : Participant) => (
+            <tr>
+              <td>{user.name}</td>
+              <td>{user.id}</td>
+              <td>{user.role}</td>
+            </tr>
+          ))}
+        </tbody>
+      </Table>
+    );
+
     if (this.state.modalStatusSearching) {
-      userModalContent = (
+      userModalContent.push(
         <Form onSubmit={this.searchForUser.bind(this)}>
           <Form.Label>Search for users:</Form.Label>
           <Form.Control 
@@ -413,7 +474,7 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
         </Form>
       );
     } else {
-      userModalContent = (
+      userModalContent.push(
         <Form onSubmit={this.searchForUser.bind(this)}>
           <Form.Label>Search for users:</Form.Label>
           <Form.Control 
@@ -485,6 +546,26 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
   }
 
   render() {
+    // The playlist_id variable should contain the id of a playlist
+    socket = io('/api/playlist/votelist', {
+      query: {
+        "id":this.props.match.params.id
+      }
+    }); 
+    
+    socket.on('connect', () => {
+      console.log('connection established');
+    });
+    
+    // This will register an event handler for update events 
+    // which can be triggered by other clients
+    socket.on('update', (data) => {
+      // data is an object, it contains all voted tracks and its votes
+      // data = {track_id1: votes1, track_id2: votes2}
+      // Update page with new votelist data
+      this.updateVotingSession(data);
+    });
+    
     let modalContent = this.renderModalContent();
     let userModalContent = this.renderUserModalContent();
 
@@ -500,9 +581,11 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
             Search for songs
           </button>
 
-          <button onClick={this.addUserModalOpen.bind(this)}>
-            Search for members
-          </button>
+          {!this.state.isViewer && (
+            <button onClick={this.addUserModalOpen.bind(this)}>
+              Search for members
+            </button>
+          )}
 
           <div className="queue-container">
             <Table bordered hover>
@@ -552,11 +635,13 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
                         {track.votes}
                       </button>
                     </td>
-                    <td>
+                    {!this.state.isViewer && (
+                      <td>
                       <button className="rowBtn" onClick={() => this.addToQueue(track)}>
                         <FontAwesomeIcon icon={faPlusSquare} style={{color: "grey"}}/>
                       </button>
                     </td>
+                    )}
                   </tr>
                 ))}
               </tbody>
