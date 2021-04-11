@@ -249,5 +249,5 @@ export default {
   createPlaylist,
   updatePlaylist,
   removePlaylist,
-  getAccessToken: getPlaylistAccessToken,
+  getPlaylistAccessToken,
 };

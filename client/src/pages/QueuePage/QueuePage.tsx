@@ -48,8 +48,8 @@ type QueuePageState = {
   allUsers: Participant[],
 };
 
-var socket: Socket;
 export default class QueuePage extends React.Component<QueuePageProps & RouteComponentProps<QueueRouteParams>, QueuePageState> {
+  private _socket: Socket;
   constructor(props: QueuePageProps & RouteComponentProps<QueueRouteParams>) {
       super(props);
       this.state = {
@@ -81,6 +81,13 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
         participants: [],
         allUsers: [] 
       };
+      this._socket = io('/api/playlist/votelist', {
+        query: {
+          id: this.props.match.params.id,
+        }
+      })
+
+      this.setupSocket();
   }
 
   async componentDidMount() {
@@ -88,12 +95,24 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
     this.fetchTracks();
     await this.fetchAllUsers();
     await this.fetchParticipants();
-    console.log("done fetching participants: ", this.state.participants);
     await this.determineRole();
+
+    this.setupSocket(); 
+  }
+
+  setupSocket() {
+    // Set up socket
+    this._socket.on('connect', () => {
+      console.log('connection established');
+    });
+
+    this._socket.on('verified', () => {
+      this._socket.emit('get');
+    })
 
     // This will register an event handler for update events 
     // which can be triggered by other clients
-    socket.on('update', (data) => {
+    this._socket.on('update', (data) => {
       // data is an object, it contains all voted tracks and its votes
       // data = {track_id1: votes1, track_id2: votes2}
       // Update page with new votelist data
@@ -187,7 +206,7 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
       return resp.json();
     })
     .then((json) => {
-      let tracks : [Track] = json.items.map((trackData : any) => { return this.extractTrackJson(trackData)})
+      let tracks : [Track] = json.map((trackData : any) => { return this.extractTrackJson(trackData)})
       this.setState({
         tracks: tracks
       })
@@ -225,41 +244,21 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
   }
 
   extractTrackJson(trackJson : any) {
-    let trackName = trackJson.track.name;
-    let albumName = trackJson.track.album.name;
-    let uri = trackJson.track.uri;
-    let artistArr = trackJson.track.album.artists.map((artistJson : any) => artistJson.name);
-    let artistName = artistArr.join(', ');
-    let duration = trackJson.track.duration_ms; 
-    let albumCover = trackJson.track.album.images[2].url;
+    const trackName = trackJson.name;
+    const albumName = trackJson.album.name;
+    const uri = trackJson.uri;
+    const artistArr = trackJson.album.artists.map((artistJson : any) => artistJson.name);
+    const artistName = artistArr.join(', ');
+    const votes = trackJson.votes;
+    const duration = trackJson.duration_ms; 
+    const albumCover = trackJson.album.images[2].url;
 
     let trackObj : Track = {
       trackName: trackName,
       artistName: artistName,
       albumName: albumName,
       uri: uri,
-      votes: 0,
-      duration: duration,
-      albumCover: albumCover
-    }; 
-    return trackObj;
-  }
-
-  extractResultJson(searchJson : any) {
-    let trackName = searchJson.name;
-    let albumName = searchJson.album.name;
-    let uri = searchJson.uri;
-    let artistArr = searchJson.album.artists.map((artistJson : any) => artistJson.name);
-    let artistName = artistArr.join(', ');
-    let duration = searchJson.duration_ms; 
-    let albumCover = searchJson.album.images[2];
-
-    let trackObj : Track = {
-      trackName: trackName,
-      artistName: artistName,
-      albumName: albumName,
-      uri: uri,
-      votes: 0,
+      votes: votes,
       duration: duration,
       albumCover: albumCover
     }; 
@@ -313,7 +312,7 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
       return resp.json();
     })
     .then((json) => {
-      let tracks : [Track] = json.tracks.items.map((trackData : any) => { return this.extractResultJson(trackData)})
+      let tracks : [Track] = json.map((trackData : any) => { return this.extractTrackJson(trackData)})
       this.setState({
         searchResults: tracks,
         modalStatusSearching: false
@@ -331,7 +330,6 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
       return resp.json();
     })
     .then((json) => {
-      console.log("users; ", json);
       let users : [Participant] = json;
       this.setState({
         userSearchResults: users,
@@ -344,21 +342,18 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
   }
 
   updateVotingSession(data: any) {
-    var updatedTracks = this.state.votingSession;
-    Object.keys(data).map(function(key, index) {
-      let trackIndex = updatedTracks.findIndex(t => t.uri == key);
-      updatedTracks[trackIndex].votes = data[key];
-    });
-    updatedTracks.sort((a,b) => b.votes - a.votes);
-    this.setState({ 
+    const updatedTracks:Track[] = data
+      .map((trackJSON: any) => this.extractTrackJson(trackJSON))
+      .sort((a: Track, b: Track) => b.votes - a.votes)
+    this.setState({
       votingSession: updatedTracks
-    }, () => {
+    },() => {
       console.log("updated voting session from socket: ", this.state.votingSession);
-    });
+    })
   }
 
   addToVoteSession() {
-    socket.emit('update', this.state.songSelection.uri, 1);
+    this._socket.emit('update', this.state.songSelection.uri, 1);
     this.setState({ 
       votingSession: [...this.state.votingSession, this.state.songSelection],
       addSongModal: false
@@ -386,7 +381,7 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
       participants: [...this.state.participants, this.state.userSelection],
       addUserModal: false
     }, () => {
-      console.log(this.state.participants);
+      // console.log(this.state.participants);
     });
   }
 
@@ -438,7 +433,6 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
 
   renderUserModalContent() {
     let userModalContent = [];
-    console.log("current participants: ", this.state.participants);
     userModalContent.push(
       <Table striped bordered hover size="sm">
         <thead>
@@ -512,8 +506,7 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
     var updatedTracks = this.state.votingSession;
     let trackIndex = updatedTracks.findIndex(t => t.albumName == track.albumName && t.artistName == track.artistName && t.trackName == track.trackName && t.uri == track.uri);
     updatedTracks[trackIndex].votes++;
-    socket.emit('update', updatedTracks[trackIndex].uri, updatedTracks[trackIndex].votes);
-    socket.emit('get');
+    this._socket.emit('update', updatedTracks[trackIndex].uri, updatedTracks[trackIndex].votes);
     updatedTracks.sort((a,b) => b.votes - a.votes);
     this.setState({ votingSession: updatedTracks });
   }
@@ -547,26 +540,6 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
   }
 
   render() {
-    // The playlist_id variable should contain the id of a playlist
-    socket = io('/api/playlist/votelist', {
-      query: {
-        "id":this.props.match.params.id
-      }
-    }); 
-    
-    socket.on('connect', () => {
-      console.log('connection established');
-    });
-    
-    // This will register an event handler for update events 
-    // which can be triggered by other clients
-    socket.on('update', (data) => {
-      // data is an object, it contains all voted tracks and its votes
-      // data = {track_id1: votes1, track_id2: votes2}
-      // Update page with new votelist data
-      this.updateVotingSession(data);
-    });
-    
     let modalContent = this.renderModalContent();
     let userModalContent = this.renderUserModalContent();
 

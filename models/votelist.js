@@ -1,40 +1,52 @@
 import getDB from '../database/connection.js';
+import tracksModel from './tracks.js';
+
+const {getSpotifyTrack} = tracksModel;
 
 /**
  *
  * @param {string} playlistID
+ * @param {string} accessToken
  * @return {object}
  */
-async function getVotelist(playlistID) {
+async function getVotelist(playlistID, accessToken) {
   const db = await getDB();
   const query = {id: playlistID};
-  const result = db.collection('playlists').findOne(query);
-  return await result.votelist;
+  const votelist = (await db.collection('playlists').findOne(query)).votelist;
+  const tracks = await Promise.all(Object.entries(votelist)
+      .map(async ([k, v]) => {
+        const t = await getSpotifyTrack(k, accessToken);
+        t.votes = v;
+        return t;
+      }));
+  return tracks;
 }
 
 /**
  *
  * @param {string} playlistID
  * @param {string} trackID
- * @param {number} vote
+ * @param {number} votes
+ * @param {string} accessToken
  * @return {object}
  */
-async function updateVotelist(playlistID, trackID, vote) {
+async function updateVotelist(playlistID, trackID, votes, accessToken) {
   const db = await getDB();
   const query = {id: playlistID};
   let updateDocument;
-  if (vote >= 1) {
+  if (votes >= 1) {
     updateDocument = {
-      $set: {[`votelist.${trackID}`]: vote},
+      $set: {[`votelist.${trackID}`]: votes},
     };
-  } else if (vote === 0) {
+  } else if (votes === 0) {
     updateDocument = {
       $unset: {[`votelist.${trackID}`]: ''},
     };
   }
-  const result = await db.collection('playlists')
+  await db.collection('playlists')
       .updateOne(query, updateDocument);
-  return result.votelist;
+  const result = await getVotelist(playlistID, accessToken);
+  return result;
 }
 
 export default {
