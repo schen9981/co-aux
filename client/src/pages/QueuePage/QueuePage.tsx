@@ -271,8 +271,8 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
     let selectedTrack : Track = {
       trackName: value[0],
       artistName: value[1],
-      albumName: '',
-      uri: value[2],
+      albumName: value[2],
+      uri: value[3],
       votes: 0,
       duration: 0,
       albumCover: ""
@@ -421,7 +421,7 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
             <Form.Control as="select" custom onChange={this.onChangeSongSelection.bind(this)}>
               <option value="song">chose your song</option>
               {this.state.searchResults.map((result) => (
-                <option value={result.trackName + '+' + result.artistName + '+' + result.uri}>{result.trackName + ' by ' + result.artistName}</option>
+                <option value={result.trackName + '+' + result.artistName + '+' + result.albumName + '+' + result.uri}>{result.trackName + ' by ' + result.artistName}</option>
               ))}
             </Form.Control>
           </Form.Group>
@@ -538,7 +538,8 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
       method: 'POST', 
       headers: {'content-type':'application/json'}, 
       body: JSON.stringify({
-          uris: [ trackURI ]})
+          uris: [ trackURI ]
+        })
     })
     .then(resp => resp.json())
     .then(resp => console.log(resp))
