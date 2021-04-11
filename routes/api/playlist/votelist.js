@@ -27,10 +27,10 @@ const connectionHandler = async (socket) => {
     socket.emit('update', result);
   });
 
-  socket.on('update', async (trackURI, vote) => {
+  socket.on('update', async (trackURI, votes) => {
     const uriTokens = trackURI.split(':');
     const trackID = uriTokens[uriTokens.length - 1];
-    const result = await updateVotelist(id, trackID, vote, accessToken);
+    const result = await updateVotelist(id, trackID, votes, accessToken);
     app.get('socketio').of('/api/playlist/votelist').to(roomID)
         .emit('update', result);
   });

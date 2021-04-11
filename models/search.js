@@ -19,7 +19,7 @@ async function searchTracks(name, accessToken) {
   };
 
   const response = await axios.get(url, config);
-  return response.data;
+  return response.data.tracks.items;
 }
 
 export default {searchTracks};

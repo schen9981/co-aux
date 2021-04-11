@@ -1,7 +1,7 @@
 import axios from 'axios';
 import playlistModel from './playlist.js';
 
-const {getAccessToken} = playlistModel;
+const {getPlaylistAccessToken} = playlistModel;
 
 /**
  *
@@ -20,7 +20,7 @@ async function getSpotifyPlaylistTracks(playlistID, accessToken) {
     },
   };
   const response = await axios.get(url, config);
-  return response.data;
+  return response.data.items.map((item) => item.track);
 }
 
 /**
@@ -117,7 +117,7 @@ async function removeSpotifyTracks(playlistID, accessToken, tracks) {
  * @return {object}
  */
 async function getTracks(playlistID, userID) {
-  const accessToken = await getAccessToken(playlistID, userID);
+  const accessToken = await getPlaylistAccessToken(playlistID, userID);
   const result = await getSpotifyPlaylistTracks(playlistID, accessToken);
   return result;
 }
@@ -131,7 +131,7 @@ async function getTracks(playlistID, userID) {
  * @return {object}
  */
 async function createTracks(playlistID, userID, position, uris) {
-  const accessToken = await getAccessToken(playlistID, userID);
+  const accessToken = await getPlaylistAccessToken(playlistID, userID);
   const result = await createSpotifyTracks(playlistID, accessToken,
       position, uris);
   return result;
@@ -145,7 +145,7 @@ async function createTracks(playlistID, userID, position, uris) {
  * @return {object}
  */
 async function removeTracks(playlistID, userID, tracks) {
-  const accessToken = await getAccessToken(playlistID, userID);
+  const accessToken = await getPlaylistAccessToken(playlistID, userID);
   const result = await removeSpotifyTracks(playlistID, accessToken, tracks);
   return result;
 }
