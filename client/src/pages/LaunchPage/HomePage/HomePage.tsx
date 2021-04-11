@@ -50,7 +50,7 @@ export default class HomePage extends React.Component<HomePageProps, HomePageSta
       this.setModalContentSelector = this.setModalContentSelector.bind(this);
   }
 
-  componentDidMount() {
+  async componentDidMount() {
     // Get all spotify playlists for pre-loading
     fetch('/api/user/playlist')
       .then((resp) => {
@@ -74,7 +74,7 @@ export default class HomePage extends React.Component<HomePageProps, HomePageSta
       });
 
       // Get editor playlists
-      fetch('/api/playlist?role=editor')
+      await fetch('/api/playlist?role=editor')
       .then((resp) => {
         return resp.json();
       })
@@ -85,13 +85,15 @@ export default class HomePage extends React.Component<HomePageProps, HomePageSta
       });
 
       // Get viewer playlists
-      fetch('/api/playlist?role=viewer')
+      await fetch('/api/playlist?role=viewer')
       .then((resp) => {
         return resp.json();
       })
       .then((json) => {
         this.setState({
-          contributorPlaylists: [...this.state.contributorPlaylists, json]
+          contributorPlaylists: this.state.contributorPlaylists.concat(json)
+        }, () => {
+          // console.log("check contributorPlaylists: ", this.state.contributorPlaylists)
         });
       });
   }
@@ -119,6 +121,7 @@ export default class HomePage extends React.Component<HomePageProps, HomePageSta
   }
 
   onChangePlaylistSelection(event : any) {
+    // console.log("target value: ", event.target.value);
     this.setState({
       preloadedPlaylistId: event.target.value
     });
@@ -128,10 +131,11 @@ export default class HomePage extends React.Component<HomePageProps, HomePageSta
     // get the tracks of the preloaded playlist
     fetch('/api/playlist/' + this.state.preloadedPlaylistId + '/tracks')
     .then((resp) => {
+      // console.log("response: ", resp);
       return resp.json();
     })
     .then((json) => {
-      console.log("json tracks?: ", json);
+      // console.log("json tracks?: ", json);
       let uris = json.items.map((trackData : any) => { return trackData.track.uri})
       this.addPreloadedToPlaylist(uris);
     })
@@ -182,18 +186,6 @@ export default class HomePage extends React.Component<HomePageProps, HomePageSta
         modalSelection: 'preloaded',
         newPlaylistModal: true
       });
-    })
-    .catch((err) => console.log(err));
-  }
-
-  loadPlaylist(playlistId : string) {
-    console.log("playlistId: ", playlistId);
-    // get request to spotify api to load selected playlist
-    fetch('/api/playlist/' + playlistId)
-    .then((resp) => resp.json())
-    .then((json) => {
-      console.log("json response: ", json);
-      // this.routeToPlaylist("/playlist/" + json.id);
     })
     .catch((err) => console.log(err));
   }
@@ -263,7 +255,7 @@ export default class HomePage extends React.Component<HomePageProps, HomePageSta
                 <Form.Label>chose one of your playlists to populate your new queue:</Form.Label>
                 <Form.Control as="select" custom onChange={this.onChangePlaylistSelection.bind(this)}>
                   <option value="playlist">chose your playlist</option>
-                  {this.state.allPlaylists.map((playlist) => (
+                  {this.state.allPlaylists.map((playlist : PlaylistObject) => (
                     <option value={playlist.id}>{playlist.name}</option>
                   ))}
                 </Form.Control>
