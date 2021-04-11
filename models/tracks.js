@@ -9,8 +9,49 @@ const {getAccessToken} = playlistModel;
  * @param {string} accessToken
  * @return {object}
  */
-async function getSpotifyTracks(playlistID, accessToken) {
+async function getSpotifyPlaylistTracks(playlistID, accessToken) {
   const url = `https://api.spotify.com/v1/playlists/${playlistID}/tracks`;
+  const config = {
+    headers: {
+      'Authorization': `Bearer ${accessToken}`,
+    },
+    params: {
+      'market': 'US',
+    },
+  };
+  const response = await axios.get(url, config);
+  return response.data;
+}
+
+/**
+ *
+ * @param {Array} ids
+ * @param {string} accessToken
+ * @return {object}
+ */
+async function getSpotifyTracks(ids, accessToken) {
+  const url = `https://api.spotify.com/v1/tracks`;
+  const config = {
+    headers: {
+      'Authorization': `Bearer ${accessToken}`,
+    },
+    params: {
+      'ids': new URLSearchParams(ids),
+      'market': 'US',
+    },
+  };
+  const response = await axios.get(url, config);
+  return response.data;
+}
+
+/**
+ *
+ * @param {string} id
+ * @param {string} accessToken
+ * @return {object}
+ */
+async function getSpotifyTrack(id, accessToken) {
+  const url = `https://api.spotify.com/v1/tracks/${id}`;
   const config = {
     headers: {
       'Authorization': `Bearer ${accessToken}`,
@@ -77,7 +118,7 @@ async function removeSpotifyTracks(playlistID, accessToken, tracks) {
  */
 async function getTracks(playlistID, userID) {
   const accessToken = await getAccessToken(playlistID, userID);
-  const result = await getSpotifyTracks(playlistID, accessToken);
+  const result = await getSpotifyPlaylistTracks(playlistID, accessToken);
   return result;
 }
 
@@ -111,6 +152,8 @@ async function removeTracks(playlistID, userID, tracks) {
 
 export default {
   getTracks,
+  getSpotifyTracks,
+  getSpotifyTrack,
   createTracks,
   removeTracks,
 };

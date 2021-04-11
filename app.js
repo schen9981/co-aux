@@ -46,6 +46,18 @@ app.use('/login', loginRouter);
 app.use(checkUser);
 app.use('/api', apiRouter);
 
+// Bind a socket io to the app
+app.set('socketio', new Server({}));
+
+// Register middlewares for socketio
+app.get('socketio').of('/api/playlist/votelist').
+    use(wrap(sessionManager));
+app.get('socketio').of('/api/playlist/votelist').
+    use(wrap(checkUser));
+
+// Register socketio connection handler
+app.get('socketio').of('/api/playlist/votelist')
+    .on('connection', votelistConnectionHandler);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -62,16 +74,5 @@ app.use(function(err, req, res, next) {
   res.status(err.status || 500);
   res.json('error');
 });
-
-// Bind a socket io to the app
-app.set('socketio', new Server({}));
-
-// Register middlewares for socketio
-app.get('socketio').use(wrap(sessionManager));
-app.get('socketio').use(wrap(checkUser));
-
-// Register socketio connection handler
-app.get('socketio').of('/^\/api\/playlist\/votelist$/')
-    .on('connection', votelistConnectionHandler);
 
 export default app;

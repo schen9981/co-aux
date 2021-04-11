@@ -1,15 +1,25 @@
 import getDB from '../database/connection.js';
+import tracksModel from './tracks.js';
+
+const {getSpotifyTrack} = tracksModel;
 
 /**
  *
  * @param {string} playlistID
+ * @param {string} accessToken
  * @return {object}
  */
-async function getVotelist(playlistID) {
+async function getVotelist(playlistID, accessToken) {
   const db = await getDB();
   const query = {id: playlistID};
-  const result = db.collection('playlists').findOne(query);
-  return await result.votelist;
+  const votelist = (await db.collection('playlists').findOne(query)).votelist;
+  const tracks = await Promise.all(Object.entries(votelist)
+      .map(async ([k, v]) => {
+        const t = getSpotifyTrack(k, accessToken);
+        t.vote = v;
+        return t;
+      }));
+  return tracks;
 }
 
 /**
@@ -17,9 +27,10 @@ async function getVotelist(playlistID) {
  * @param {string} playlistID
  * @param {string} trackID
  * @param {number} vote
+ * @param {string} accessToken
  * @return {object}
  */
-async function updateVotelist(playlistID, trackID, vote) {
+async function updateVotelist(playlistID, trackID, vote, accessToken) {
   const db = await getDB();
   const query = {id: playlistID};
   let updateDocument;
@@ -32,9 +43,10 @@ async function updateVotelist(playlistID, trackID, vote) {
       $unset: {[`votelist.${trackID}`]: ''},
     };
   }
-  const result = await db.collection('playlists')
+  await db.collection('playlists')
       .updateOne(query, updateDocument);
-  return result.votelist;
+  const result = await getVotelist(playlistID, accessToken);
+  return result;
 }
 
 export default {

@@ -50,8 +50,8 @@ type QueuePageState = {
   participants: Participant[] 
 };
 
-var socket: Socket;
 export default class QueuePage extends React.Component<QueuePageProps & RouteComponentProps<QueueRouteParams>, QueuePageState> {
+  private _socket: Socket;
   constructor(props: QueuePageProps & RouteComponentProps<QueueRouteParams>) {
       super(props);
       this.state = {
@@ -80,6 +80,13 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
         votingSession: [],
         participants: [] 
       };
+
+      // Set up socket
+      this._socket = io('/api/playlist/votelist', {
+        query: {
+          id: this.props.match.params.id,
+        }
+      })
   }
 
   componentDidMount() {
@@ -87,25 +94,25 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
     this.fetchTracks();
     this.fetchParticipants();
 
-    // The playlist_id variable should contain the id of a playlist
-    socket = io('/api/playlist/votelist', {
-      query: {
-        "id":this.props.match.params.id
-      }
-    }); 
+    console.log("test");
 
-    socket.on('connect', () => {
+    this._socket.on('connect', () => {
       console.log('connection established');
     });
 
+    this._socket.on('verified', () => {
+      this._socket.emit('get');
+    })
+
     // This will register an event handler for update events 
     // which can be triggered by other clients
-    socket.on('update', (data) => {
+    this._socket.on('update', (data) => {
       // data is an object, it contains all voted tracks and its votes
       // data = {track_id1: votes1, track_id2: votes2}
       // Update page with new votelist data
       this.updateVotingSession(data);
   })
+
   }
 
   addSongModalOpen() {
@@ -319,7 +326,7 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
   }
 
   addToVoteSession() {
-    socket.emit('update', this.state.songSelection.uri, 1);
+    this._socket.emit('update', this.state.songSelection.uri, 1);
     this.setState({ 
       votingSession: [...this.state.votingSession, this.state.songSelection],
       addSongModal: false
@@ -451,8 +458,7 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
     var updatedTracks = this.state.votingSession;
     let trackIndex = updatedTracks.findIndex(t => t.albumName == track.albumName && t.artistName == track.artistName && t.trackName == track.trackName && t.uri == track.uri);
     updatedTracks[trackIndex].votes++;
-    socket.emit('update', updatedTracks[trackIndex].uri, updatedTracks[trackIndex].votes);
-    socket.emit('get');
+    this._socket.emit('update', updatedTracks[trackIndex].uri, updatedTracks[trackIndex].votes);
     updatedTracks.sort((a,b) => b.votes - a.votes);
     this.setState({ votingSession: updatedTracks });
   }
