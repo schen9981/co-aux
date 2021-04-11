@@ -88,7 +88,6 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
     this.fetchTracks();
     await this.fetchAllUsers();
     await this.fetchParticipants();
-    console.log("done fetching participants: ", this.state.participants);
     await this.determineRole();
 
     // This will register an event handler for update events 
@@ -331,7 +330,6 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
       return resp.json();
     })
     .then((json) => {
-      console.log("users; ", json);
       let users : [Participant] = json;
       this.setState({
         userSearchResults: users,
@@ -386,7 +384,7 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
       participants: [...this.state.participants, this.state.userSelection],
       addUserModal: false
     }, () => {
-      console.log(this.state.participants);
+      // console.log(this.state.participants);
     });
   }
 
@@ -438,7 +436,6 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
 
   renderUserModalContent() {
     let userModalContent = [];
-    console.log("current participants: ", this.state.participants);
     userModalContent.push(
       <Table striped bordered hover size="sm">
         <thead>
