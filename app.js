@@ -8,7 +8,7 @@ import indexRouter from './routes/index.js';
 import loginRouter from './routes/login.js';
 import apiRouter from './routes/api.js';
 
-import votelistConnectionHandler from './routes/api/playlist/votelist.js';
+import playlistConnectionHandler from './routes/api/playlist_socket.js';
 
 const app = express();
 const sessionManager = session({
@@ -50,14 +50,14 @@ app.use('/api', apiRouter);
 app.set('socketio', new Server({}));
 
 // Register middlewares for socketio
-app.get('socketio').of('/api/playlist/votelist').
+app.get('socketio').of('/api/playlist').
     use(wrap(sessionManager));
-app.get('socketio').of('/api/playlist/votelist').
+app.get('socketio').of('/api/playlist').
     use(wrap(checkUser));
 
 // Register socketio connection handler
-app.get('socketio').of('/api/playlist/votelist')
-    .on('connection', votelistConnectionHandler);
+app.get('socketio').of('/api/playlist')
+    .on('connection', playlistConnectionHandler);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
