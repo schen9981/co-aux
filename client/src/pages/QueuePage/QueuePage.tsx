@@ -348,12 +348,13 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
     this.setState({
       votingSession: updatedTracks
     },() => {
-      console.log("updated voting session from socket: ", this.state.votingSession);
+      // console.log("updated voting session from socket: ", this.state.votingSession);
     })
   }
 
   addToVoteSession() {
     this._socket.emit('update', this.state.songSelection.uri, 1);
+    this._socket.emit('get');
     this.setState({ 
       votingSession: [...this.state.votingSession, this.state.songSelection],
       addSongModal: false
@@ -516,11 +517,12 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
     var trackIndex = votingTracks.findIndex(t => t.albumName == track.albumName && t.artistName == track.artistName && t.trackName == track.trackName && t.uri == track.uri);
     votingTracks.splice(trackIndex,1);
     this.insertTracks(this.state.votingSession[trackIndex].uri);
+    this._socket.emit('update', track.uri, 0);
+    this._socket.emit('get');
     this.setState({ 
-      tracks: [...this.state.tracks, this.state.votingSession[trackIndex]],
+      tracks: [...this.state.tracks, track],
       votingSession: votingTracks
     }, () => {
-      // console.log(this.state.tracks);
       // console.log(this.state.votingSession);
     });
   }
