@@ -81,7 +81,7 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
         participants: [],
         allUsers: [] 
       };
-      this._socket = io('/api/playlist/votelist', {
+      this._socket = io('/api/playlist', {
         query: {
           id: this.props.match.params.id,
         }
@@ -107,17 +107,24 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
     });
 
     this._socket.on('verified', () => {
-      this._socket.emit('get');
+      this._socket.emit('getVotelist');
     })
 
     // This will register an event handler for update events 
     // which can be triggered by other clients
-    this._socket.on('update', (data) => {
+    this._socket.on('votelistUpdate', (data) => {
       // data is an object, it contains all voted tracks and its votes
       // data = {track_id1: votes1, track_id2: votes2}
       // Update page with new votelist data
       this.updateVotingSession(data);
     });
+
+    this._socket.on('tracksUpdate', (data) => {
+       let tracks : [Track] = data.map((trackData : any) => { return this.extractTrackJson(trackData)})
+       this.setState({
+        tracks: tracks
+      })
+    })
   }
 
   async determineRole() {
@@ -330,7 +337,7 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
       return resp.json();
     })
     .then((json) => {
-      let users : [Participant] = json.filter((user: Participant) => !this.state.participants.some(participant => participant.id == user.id));
+      let users : [Participant] = json.filter((user: Participant) => (user.id.includes(this.state.userSearchTerm) || user.name.includes(this.state.userSearchTerm)) && !this.state.participants.some(participant => participant.id == user.id));
       this.setState({
         userSearchResults: users,
         modalStatusSearching: false
@@ -353,8 +360,8 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
   }
 
   addToVoteSession() {
-    this._socket.emit('update', this.state.songSelection.uri, 1);
-    this._socket.emit('get');
+    this._socket.emit('updateVotelist', this.state.songSelection.uri, 1);
+    this._socket.emit('getVotelist');
     this.setState({ 
       votingSession: [...this.state.votingSession, this.state.songSelection],
       addSongModal: false
@@ -507,7 +514,7 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
     var updatedTracks = this.state.votingSession;
     let trackIndex = updatedTracks.findIndex(t => t.albumName == track.albumName && t.artistName == track.artistName && t.trackName == track.trackName && t.uri == track.uri);
     updatedTracks[trackIndex].votes++;
-    this._socket.emit('update', updatedTracks[trackIndex].uri, updatedTracks[trackIndex].votes);
+    this._socket.emit('updateVotelist', updatedTracks[trackIndex].uri, updatedTracks[trackIndex].votes);
     updatedTracks.sort((a,b) => b.votes - a.votes);
     this.setState({ votingSession: updatedTracks });
   }
@@ -517,8 +524,8 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
     var trackIndex = votingTracks.findIndex(t => t.albumName == track.albumName && t.artistName == track.artistName && t.trackName == track.trackName && t.uri == track.uri);
     votingTracks.splice(trackIndex,1);
     this.insertTracks(this.state.votingSession[trackIndex].uri);
-    this._socket.emit('update', track.uri, 0);
-    this._socket.emit('get');
+    this._socket.emit('updateVotelist', track.uri, 0);
+    this._socket.emit('getVotelist');
     this.setState({ 
       tracks: [...this.state.tracks, track],
       votingSession: votingTracks

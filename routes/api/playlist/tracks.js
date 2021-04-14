@@ -19,13 +19,25 @@ router.get('/', function(req, res) {
 router.post('/', function(req, res) {
   createTracks(req.params.id, req.session.userID,
       req.body.position, req.body.uris)
-      .then((data) => res.json(data))
+      .then(async (data) => {
+        const roomID = `/api/playlist/${req.params.id}`;
+        const tracks = await getTracks(req.params.id, req.session.userID);
+        req.app.get('socketio').of('/api/playlist').to(roomID)
+            .emit('tracksUpdate', tracks);
+        res.json(data);
+      })
       .catch((err) => res.json(err));
 });
 
 router.delete('/', function(req, res) {
   removeTracks(req.params.id, req.session.userID, req.body.tracks)
-      .then((data) => res.json(data))
+      .then(async (data) => {
+        const roomID = `/api/playlist/${req.params.id}`;
+        const tracks = await getTracks(req.params.id, req.session.userID);
+        req.app.get('socketio').of('/api/playlist').to(roomID)
+            .emit('tracksUpdate', tracks);
+        res.json(data);
+      })
       .catch((err) => res.json(err));
 });
 
