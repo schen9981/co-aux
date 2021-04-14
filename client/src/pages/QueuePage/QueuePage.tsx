@@ -330,7 +330,7 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
       return resp.json();
     })
     .then((json) => {
-      let users : [Participant] = json;
+      let users : [Participant] = json.filter((user: Participant) => !this.state.participants.some(participant => participant.id == user.id));
       this.setState({
         userSearchResults: users,
         modalStatusSearching: false
