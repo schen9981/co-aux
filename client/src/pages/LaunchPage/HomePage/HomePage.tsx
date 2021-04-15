@@ -135,8 +135,9 @@ export default class HomePage extends React.Component<HomePageProps, HomePageSta
       return resp.json();
     })
     .then((json) => {
-      console.log("json tracks?: ", json);
-      let uris = json.map((trackData : any) => { return trackData.track.uri})
+      // console.log("json tracks?: ", json);
+      let uris = json.map((trackData : any) => { return trackData.uri})
+      // console.log("uris: ", uris);
       this.addPreloadedToPlaylist(uris);
     })
     .catch((err) => {

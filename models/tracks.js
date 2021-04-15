@@ -152,6 +152,7 @@ async function removeTracks(playlistID, userID, tracks) {
 
 export default {
   getTracks,
+  getSpotifyPlaylistTracks,
   getSpotifyTracks,
   getSpotifyTrack,
   createTracks,
