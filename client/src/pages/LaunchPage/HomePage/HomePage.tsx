@@ -129,14 +129,14 @@ export default class HomePage extends React.Component<HomePageProps, HomePageSta
 
   fetchPreloadedTracks() {
     // get the tracks of the preloaded playlist
-    fetch('/api/playlist/' + this.state.preloadedPlaylistId + '/tracks')
+    fetch('/api/user/playlist/' + this.state.preloadedPlaylistId + '/tracks')
     .then((resp) => {
       // console.log("response: ", resp);
       return resp.json();
     })
     .then((json) => {
       console.log("json tracks?: ", json);
-      let uris = json.items.map((trackData : any) => { return trackData.track.uri})
+      let uris = json.map((trackData : any) => { return trackData.track.uri})
       this.addPreloadedToPlaylist(uris);
     })
     .catch((err) => {
