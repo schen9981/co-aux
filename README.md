@@ -17,6 +17,12 @@ Co-Aux is a web application app that allows its users to collaborate and interac
   - Endpoint: GET /api/user/playlist
   - Response: Response body contains a user's all spotify playlists.
 
+#### Get All Tracks of a User's Playlist
+  - Endpoint: GET /api/user/playlist/{playlist_id}/tracks
+  - Path Parameters:
+    - {playlist_id} - the id of a playlist
+  - Response: Response body contains an array of track objects. 
+
 ### Playlist
 #### Get a User's Playlists
   - Endpoint: GET /api/playlist
