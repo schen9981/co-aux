@@ -3,6 +3,8 @@
 
 Co-Aux is a web application app that allows its users to collaborate and interact with others to create and manage unique music playlists as they are streaming on Spotify. Music is present at nearly every moment of day to day life, from getting ready in the morning to commuting to work to hosting a party with friends. Co-Aux would make it easier for users to better match their playlists to the moment by allowing other users to provide input into what is playing.
 
+Deployed Site: http://ec2-44-192-58-84.compute-1.amazonaws.com/
+
 ## Team Member Contributions
 #### Sophia Chen (Team Leader - Capstone)
 During the design process, I came up with the low-fidelity and high-fidelity mockups for all the interfaces and interactions that our application had. I setup our initial frontend codebase, laying out a foundation for the organizational structure of all our pages, relevant components, etc. I handled the login page, creating new playlists (from empty and existing Spotify playlist), and syncing that data realtime with a user's Spotify account. I also added song search functionality to add to queues and playlists. 
