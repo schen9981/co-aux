@@ -50,6 +50,7 @@ type QueuePageState = {
 
 export default class QueuePage extends React.Component<QueuePageProps & RouteComponentProps<QueueRouteParams>, QueuePageState> {
   private _socket: Socket;
+  private userVotes : Map<string,boolean>;
   constructor(props: QueuePageProps & RouteComponentProps<QueueRouteParams>) {
       super(props);
       this.state = {
@@ -86,6 +87,8 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
           id: this.props.match.params.id,
         }
       })
+
+      this.userVotes = new Map();
 
       this.setupSocket();
   }
@@ -319,7 +322,8 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
       return resp.json();
     })
     .then((json) => {
-      let tracks : [Track] = json.map((trackData : any) => { return this.extractTrackJson(trackData)})
+      let tracks : Track[] = json.map((trackData : any) => { return this.extractTrackJson(trackData)})
+      tracks = tracks.filter(track => !this.state.votingSession.some(song => song.albumName == track.albumName && song.artistName == track.artistName && song.trackName == track.trackName && song.uri == track.uri))
       this.setState({
         searchResults: tracks,
         modalStatusSearching: false
@@ -349,9 +353,22 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
   }
 
   updateVotingSession(data: any) {
+    let ids : string[]= [];
     const updatedTracks:Track[] = data
-      .map((trackJSON: any) => this.extractTrackJson(trackJSON))
+      .map((trackJSON: any) => {
+        let extracted = this.extractTrackJson(trackJSON);
+        if(!this.userVotes.has(extracted.uri)) { // adds new songs, sets vote ability = true
+          this.userVotes.set(extracted.uri, true); // otherwise song already in map, keep vote status
+        }
+        ids.push(extracted.uri);
+        return extracted;
+      })
       .sort((a: Track, b: Track) => b.votes - a.votes)
+      this.userVotes.forEach((canVote, id) => { // case where voting track was deleted
+        if(!ids.includes(id)) { // an id in the voting map isn't in the updated voting session
+          this.userVotes.delete(id);
+        }
+      });
     this.setState({
       votingSession: updatedTracks
     },() => {
@@ -513,10 +530,23 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
   incrementVote(track: Track) {
     var updatedTracks = this.state.votingSession;
     let trackIndex = updatedTracks.findIndex(t => t.albumName == track.albumName && t.artistName == track.artistName && t.trackName == track.trackName && t.uri == track.uri);
-    updatedTracks[trackIndex].votes++;
+    
+    // Toggles vote count
+    if(this.userVotes.get(track.uri)) { // canVote = true
+      updatedTracks[trackIndex].votes++;
+    } else { // they've already liked it, now unliking
+      updatedTracks[trackIndex].votes--;
+    }
+
+    // Flip vote status so if true -> false and vice versa
+    this.userVotes.set(track.uri, !this.userVotes.get(track.uri));
+    
     this._socket.emit('updateVotelist', updatedTracks[trackIndex].uri, updatedTracks[trackIndex].votes);
+    
     updatedTracks.sort((a,b) => b.votes - a.votes);
-    this.setState({ votingSession: updatedTracks });
+    this.setState({ 
+      votingSession: updatedTracks
+    });
   }
 
   addToQueue(track: Track) {
@@ -599,19 +629,25 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
             <Table bordered hover>
               <thead>
                 <tr>
-                  <th>song name</th>
-                  <th>artists</th>
-                  <th>album name</th>
+                  <th>Song Title</th>
+                  <th>Album</th>
                   <th>votes</th>
-                  <th>add to queue</th>
+                  {!this.state.isViewer && (
+                    <th>add to queue</th>
+                  )}
                 </tr>
               </thead>
               <tbody>
                 {this.state.votingSession.map((track : Track) => (
                   <tr>
-                    <td>{track.trackName}</td>
-                    <td>{track.artistName}</td>
-                    <td>{track.albumName}</td>
+                    <td className="songContainer">
+                      <img src={track.albumCover}></img>
+                      <div className="songInfoContainer">
+                        <div style={{fontWeight: "bold"}}>{track.trackName}</div>
+                        <div>{track.artistName}</div>
+                      </div>
+                    </td>
+                    <td style={{fontWeight: "bold"}}>{track.albumName}</td>
                     <td>
                       <button className="rowBtn" onClick={() => this.incrementVote(track)}>
                         <FontAwesomeIcon icon={faHeart} style={{color: "grey", paddingRight: "5px"}}/>
