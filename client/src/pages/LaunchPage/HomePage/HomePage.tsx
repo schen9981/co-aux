@@ -339,7 +339,7 @@ export default class HomePage extends React.Component<HomePageProps, HomePageSta
           </div>
         </div>
         <div className="section-header">
-            <h1> playlist session you've joined</h1>
+            <h1> playlist sessions you've joined</h1>
         </div>
         <div className="contribute-playlists">
           {this.state.contributorPlaylists.map((playlist : PlaylistObject, index) => (
