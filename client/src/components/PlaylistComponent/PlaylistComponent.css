@@ -19,7 +19,10 @@
   width: 100%;
 }
 
-.playlist-name-container p {
+.playlist-name-container a {
   font-size: 25px;
   margin: 0px;
+  text-decoration: none;
+  color: #264653;
+  margin-left: 25px;
 }

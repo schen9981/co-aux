@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import './HomePage.css';
+import playlistIcon from '../../../assets/playlist-icon.svg';
 import { Modal, Form, Button } from 'react-bootstrap';
 import NewPlaylistComponent from '../../../components/NewPlaylistComponent/NewPlaylistComponent';
 import PlaylistComponent from '../../../components/PlaylistComponent/PlaylistComponent';
@@ -224,8 +225,18 @@ export default class HomePage extends React.Component<HomePageProps, HomePageSta
     if (this.state.modalSelection === 'initial') {
       modalContent = (
         <div className="new-playlist-options">
-          <button onClick={() => this.setModalContentSelector("empty")} title="empty playlist" color="#2A9D8F"/>
-          <button onClick={() => this.setModalContentSelector("preloaded")} title="pre-loaded playlist" color="#F4A261"/>
+          <button className="empty-playlist-button" onClick={() => this.setModalContentSelector("empty")}>
+            <img className="playlist-icon" alt="3 aux chords" src={playlistIcon}/>
+            <div className="new-playlist-name-container">
+              <p>empty playlist</p>
+            </div>
+          </button>
+          <button className="preloaded-button" onClick={() => this.setModalContentSelector("preloaded")}>
+            <img className="playlist-icon" alt="3 aux chords" src={playlistIcon}/>
+            <div className="new-playlist-name-container">
+              <p>pre-loaded playlist</p>
+            </div>
+          </button>
         </div>
       );
       return modalContent;
@@ -312,10 +323,10 @@ export default class HomePage extends React.Component<HomePageProps, HomePageSta
     return (
       <div className="home">
         <div className="welcome-header">
-          <h1> Welcome, {this.props.userData.display_name}</h1>
+          <h1> welcome, {this.props.userData.display_name}</h1>
         </div>
         <div className="section-header">
-            <h1> Your Co-Auxed Playlists </h1>
+            <h1> your co-auxed playlists </h1>
         </div>
         <div className="host-playlists" >
           {this.state.hostPlaylists.map((playlist : PlaylistObject, index) => (
@@ -328,7 +339,7 @@ export default class HomePage extends React.Component<HomePageProps, HomePageSta
           </div>
         </div>
         <div className="section-header">
-            <h1> Playlist Sessions You've Joined</h1>
+            <h1> playlist session you've joined</h1>
         </div>
         <div className="contribute-playlists">
           {this.state.contributorPlaylists.map((playlist : PlaylistObject, index) => (

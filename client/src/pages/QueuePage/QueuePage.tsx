@@ -39,6 +39,7 @@ type QueuePageState = {
   songSearchTerm: string,
   userSearchTerm: string,
   modalStatusSearching: boolean,
+  userModalStatusSearching: boolean
   songSelection: Track,
   searchResults: Track[],
   userSearchResults: Participant[],
@@ -62,6 +63,7 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
         songSearchTerm: "",
         userSearchTerm: "",
         modalStatusSearching: true,
+        userModalStatusSearching: true,
         songSelection: {
           trackName: "",
           artistName: "",
@@ -162,13 +164,15 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
 
   addSongModalClose() {
     this.setState({
-      addSongModal: false
+      addSongModal: false,
+      modalStatusSearching: true
     });
   }
 
   addUserModalClose() {
     this.setState({
-      addUserModal: false
+      addUserModal: false,
+      userModalStatusSearching: true
     });
   }
 
@@ -344,7 +348,7 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
       let users : [Participant] = json.filter((user: Participant) => (user.id.includes(this.state.userSearchTerm) || user.name.includes(this.state.userSearchTerm)) && !this.state.participants.some(participant => participant.id == user.id));
       this.setState({
         userSearchResults: users,
-        modalStatusSearching: false
+        userModalStatusSearching: false
       })
     })
     .catch((err) => {
@@ -420,9 +424,9 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
             onChange={e => this.setState({ songSearchTerm: e.target.value })}
             value={this.state.songSearchTerm}
             type="text" id="song-search" name="song-search" />
-          <Button type="submit">
+          <button className="add-song-modal-btn" type="submit">
             search for song
-          </Button>
+          </button>
         </Form>
       );
     } else {
@@ -433,9 +437,9 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
             onChange={e => this.setState({ songSearchTerm: e.target.value })}
             value={this.state.songSearchTerm}
             type="text" id="song-search" name="song-search" />
-          <Button type="submit">
+          <button className="add-song-modal-btn" type="submit">
             search for song
-          </Button>
+          </button>
           <Form.Group>
             <Form.Label>results from search</Form.Label>
             <Form.Control as="select" custom onChange={this.onChangeSongSelection.bind(this)}>
@@ -445,9 +449,9 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
               ))}
             </Form.Control>
           </Form.Group>
-          <Button onClick={this.addToVoteSession.bind(this)}>
+          <button className="add-song-modal-btn" onClick={this.addToVoteSession.bind(this)}>
             add song to voting session
-          </Button>
+          </button>
         </Form>
       )
 
@@ -462,9 +466,9 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
       <Table striped bordered hover size="sm">
         <thead>
           <tr>
-            <th> Username </th>
-            <th> ID </th>
-            <th> Role </th>
+            <th> username </th>
+            <th> id </th>
+            <th> role </th>
           </tr>
         </thead>
         <tbody>
@@ -479,7 +483,7 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
       </Table>
     );
 
-    if (this.state.modalStatusSearching) {
+    if (this.state.userModalStatusSearching) {
       userModalContent.push(
         <Form onSubmit={this.searchForUser.bind(this)}>
           <Form.Label>Search for users:</Form.Label>
@@ -487,24 +491,24 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
             onChange={e => this.setState({ userSearchTerm: e.target.value })}
             value={this.state.userSearchTerm}
             type="text" id="user-search" name="user-search" />
-          <Button type="submit">
-            Search for users
-          </Button>
+          <button className="add-song-modal-btn" type="submit">
+            search for users
+          </button>
         </Form>
       );
     } else {
       userModalContent.push(
         <Form onSubmit={this.searchForUser.bind(this)}>
-          <Form.Label>Search for users:</Form.Label>
+          <Form.Label>search for users:</Form.Label>
           <Form.Control 
             onChange={e => this.setState({ userSearchTerm: e.target.value })}
             value={this.state.userSearchTerm}
             type="text" id="user-search" name="user-search" />
-          <Button type="submit">
-            Search for users
-          </Button>
+          <button className="add-song-modal-btn" type="submit">
+            search for users
+          </button>
           <Form.Group>
-            <Form.Label>Results from search</Form.Label>
+            <Form.Label>results from search</Form.Label>
             <Form.Control as="select" custom onChange={this.onChangeUserSelection.bind(this)}>
               <option value="user">chose your user</option>
               {this.state.userSearchResults.map((result) => (
@@ -513,13 +517,13 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
             </Form.Control>
             <Form.Control as="select" custom onChange={this.onChangeRoleSelection.bind(this)}>
               <option value="role">chose their role</option>
-              <option value="editor">Editor</option>
-              <option value="viewer">Viewer</option>
+              <option value="editor">editor</option>
+              <option value="viewer">viewer</option>
             </Form.Control>
           </Form.Group>
-          <Button onClick={this.addToMemberList.bind(this)}>
-            Add user to member list
-          </Button>
+          <button className="add-song-modal-btn" onClick={this.addToMemberList.bind(this)}>
+            add user to member list
+          </button>
         </Form>
       )
     }
@@ -584,29 +588,26 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
 
     return (
       <div className="App">
-        <Link to="/">Return to Home Page</Link>
         <div className="curr-queue">
-          <div className="queue-name">
-            <h1>{this.state.queueName}</h1>
+          <Link className="back-btn" to="/"> return to home</Link>
+          <div className="queue-header">
+            <div className="queue-name">
+              <h1>{this.state.queueName}</h1>
+            </div>
+            {!this.state.isViewer && (
+              <button className="invite-btn" onClick={this.addUserModalOpen.bind(this)}>
+                view/add members
+              </button>
+            )}
           </div>
 
-          <button onClick={this.addSongModalOpen.bind(this)}>
-            Search for songs
-          </button>
-
-          {!this.state.isViewer && (
-            <button onClick={this.addUserModalOpen.bind(this)}>
-              Search for members
-            </button>
-          )}
-
           <div className="queue-container">
-            <Table bordered hover>
+            <Table className="queue-live-playlist">
               <thead>
                 <tr>
                   <th>#</th>
-                  <th>Song Title</th>
-                  <th>Album</th>
+                  <th>song name</th>
+                  <th>album</th>
                 </tr>
               </thead>
               <tbody>
@@ -626,50 +627,56 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
               </tbody>
             </Table>
 
-            <Table bordered hover>
-              <thead>
-                <tr>
-                  <th>Song Title</th>
-                  <th>Album</th>
-                  <th>votes</th>
-                  {!this.state.isViewer && (
-                    <th>add to queue</th>
-                  )}
-                </tr>
-              </thead>
-              <tbody>
-                {this.state.votingSession.map((track : Track) => (
+            <div className="suggestion-container">
+              <Table className="queue-suggestions">
+                <thead>
                   <tr>
-                    <td className="songContainer">
-                      <img src={track.albumCover}></img>
-                      <div className="songInfoContainer">
-                        <div style={{fontWeight: "bold"}}>{track.trackName}</div>
-                        <div>{track.artistName}</div>
-                      </div>
-                    </td>
-                    <td style={{fontWeight: "bold"}}>{track.albumName}</td>
-                    <td>
-                      <button className="rowBtn" onClick={() => this.incrementVote(track)}>
-                        <FontAwesomeIcon icon={faHeart} style={{color: "grey", paddingRight: "5px"}}/>
-                        {track.votes}
-                      </button>
-                    </td>
+                    <th>song title</th>
+                    <th>album</th>
+                    <th># of votes</th>
                     {!this.state.isViewer && (
-                      <td>
-                      <button className="rowBtn" onClick={() => this.addToQueue(track)}>
-                        <FontAwesomeIcon icon={faPlusSquare} style={{color: "grey"}}/>
-                      </button>
-                    </td>
+                      <th>add to queue</th>
                     )}
                   </tr>
-                ))}
-              </tbody>
-            </Table>
+                </thead>
+                <tbody>
+                  {this.state.votingSession.map((track : Track) => (
+                    <tr>
+                      <td className="songContainer">
+                        <img src={track.albumCover}></img>
+                        <div className="songInfoContainer">
+                          <div style={{fontWeight: "bold"}}>{track.trackName}</div>
+                          <div>{track.artistName}</div>
+                        </div>
+                      </td>
+                      <td style={{fontWeight: "bold"}}>{track.albumName}</td>
+                      <td>
+                        <button className="rowBtn" onClick={() => this.incrementVote(track)}>
+                          <FontAwesomeIcon icon={faHeart} style={{color: "grey", paddingRight: "5px"}}/>
+                          {track.votes}
+                        </button>
+                      </td>
+                      {!this.state.isViewer && (
+                        <td>
+                        <button className="rowBtn" onClick={() => this.addToQueue(track)}>
+                          <FontAwesomeIcon icon={faPlusSquare} style={{color: "grey"}}/>
+                        </button>
+                      </td>
+                      )}
+                    </tr>
+                  ))}
+                </tbody>
+              </Table>
+
+              <button className="add-song-btn" onClick={this.addSongModalOpen.bind(this)}>
+                add song to queue
+              </button>
+            </div>
           </div>
 
           <Modal show={this.state.addSongModal} onHide={this.addSongModalClose.bind(this)}>
             <Modal.Header closeButton>
-              <Modal.Title>Search for Songs</Modal.Title>
+              <Modal.Title>search for songs</Modal.Title>
             </Modal.Header>
             <Modal.Body>
               {modalContent}
@@ -678,7 +685,7 @@ export default class QueuePage extends React.Component<QueuePageProps & RouteCom
 
           <Modal show={this.state.addUserModal} onHide={this.addUserModalClose.bind(this)}>
             <Modal.Header closeButton>
-              <Modal.Title>Add Members</Modal.Title>
+              <Modal.Title>add members</Modal.Title>
             </Modal.Header>
             <Modal.Body>
               {userModalContent}

@@ -2,12 +2,54 @@
   display: flex;
 }
 
-.curr-queue {
-  background-color: #F4A261;
+.queue-name h1 {
+  font-weight: 800;
+  color: #264653;
 }
 
 .queue-container {
   display: flex;
+}
+
+.curr-queue {
+  padding-top: 80px;
+  padding-left: 50px;
+  padding-right: 50px;
+}
+
+.invite-btn {
+  background-color: #2A9D8F;
+  color: white;
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+.invite-btn:hover {
+  background-color: #264653;
+}
+
+.queue-live-playlist {
+  width: 50%;
+  background-color: #E9C46A;
+  font-family: 'Almarai', sans-serif;
+  color: #264653;
+  box-shadow: 4px 4px 4px 3px rgb(0 0 0 / 25%);
+  border-radius: 10px;
+  border: 1px solid #E9C46A;
+  margin-right: 30px;
+}
+
+.suggestion-container {
+  width: 50%;
+}
+
+.queue-suggestions {
+  background-color: #F4A261;
+  font-family: 'Almarai', sans-serif;
+  color: #264653;
+  box-shadow: 4px 4px 4px 3px rgb(0 0 0 / 25%);
+  border-radius: 10px;
+  border: 1px solid #F4A261;
 }
 
 .rowBtn {
@@ -23,6 +65,10 @@
   display: flex;
   flex-direction: row;
   justify-content: space-between;
+}
+
+.songContainer img {
+  margin-right: 10px;
 }
 
 .songInfoContainer {
@@ -43,3 +89,41 @@
   color: rgb(56, 56, 56);
   font-size: 10px;
 }
+
+.queue-header {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.back-btn {
+  text-decoration: none;
+  color: #2A9D8F;
+  font-size: 1.2rem;
+  font-weight: bold;
+  align-self: flex-end;
+}
+
+.back-btn:hover {
+  color: #264653;
+  font-weight: bolder;
+  font-size: 1.3rem;
+  text-decoration: none;
+}
+
+.add-song-btn {
+  background-color: #2A9D8F;
+  color: white;
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+.add-song-modal-btn {
+  background-color: #2A9D8F;
+  color: white;
+  font-weight: bold;
+  margin-top: 15px;
+}
+
