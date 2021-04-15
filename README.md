@@ -12,6 +12,7 @@ During the design process, I came up with the low-fidelity and high-fidelity moc
 #### Loan Ahn Tran (Project Proposer - Capstone)
 
 #### Qian Xiang
+I am mostly responsible for design and implementation of the backend part. I built the Web API for our server to interface with the Spotify application. I also designed and set up the database for our application. Apart from that, I established the CI/CD process for deploying our applications to AWS through Docker containers. Lastly, I wrote down documentation for the backend API reference.  
 
 ## API Reference
 ### User
