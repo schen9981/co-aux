@@ -3,7 +3,11 @@
 
 Co-Aux is a web application app that allows its users to collaborate and interact with others to create and manage unique music playlists as they are streaming on Spotify. Music is present at nearly every moment of day to day life, from getting ready in the morning to commuting to work to hosting a party with friends. Co-Aux would make it easier for users to better match their playlists to the moment by allowing other users to provide input into what is playing.
 
-Deployed Site: http://ec2-44-192-58-84.compute-1.amazonaws.com/
+## Test It Out! 
+
+The site is deployed at http://ec2-44-192-58-84.compute-1.amazonaws.com/.
+
+However, if you would like to run and try out our application locally, first download the repository and run 'npm install' in the directory that you've just downloaded (ie. the highest level). This will install all necessary node_modules and dependencies. Then, cd into the 'client' directory and run 'npm install' again to download all necessary node_modules and dependencies used in the frontend. One this is done, cd back into the first directory (ie. if in 'client', run 'cd ..') and run 'make run' to start the application. Navigate to 'localhost:3000' on Google Chrome to access the application! 
 
 ## Team Member Contributions
 #### Sophia Chen (Team Leader - Capstone)
